@@ -129,5 +129,9 @@ dependencies: \
   ../../illustratorapi/illustrator/IAIUnicodeString.h \
   ../../illustratorapi/illustrator/IAILocale.h \
   ../../illustratorapi/illustrator/AIArt.h \
+  ../../illustratorapi/illustrator/AICursorSnap.h \
+  ../../illustratorapi/illustrator/AITool.h \
+  ../../illustratorapi/illustrator/AIPath.h \
+  ../../illustratorapi/illustrator/AIPathStyle.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/Charts.h \
   ../common/includes/SDKErrors.h

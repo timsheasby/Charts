@@ -127,4 +127,8 @@ dependencies: \
   ../../illustratorapi/illustrator/IAIStringFormatUtils.h \
   ../../illustratorapi/illustrator/IAIUnicodeString.h \
   ../../illustratorapi/illustrator/IAILocale.h \
-  ../../illustratorapi/illustrator/AIArt.h
+  ../../illustratorapi/illustrator/AIArt.h \
+  ../../illustratorapi/illustrator/AICursorSnap.h \
+  ../../illustratorapi/illustrator/AITool.h \
+  ../../illustratorapi/illustrator/AIPath.h \
+  ../../illustratorapi/illustrator/AIPathStyle.h

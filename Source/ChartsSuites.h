@@ -22,6 +22,9 @@
 #include "AIAnnotatorDrawer.h"
 #include "AIStringFormatUtils.h"
 #include "AIArt.h"
+#include "AICursorSnap.h"
+#include "AIPath.h"
+#include "AIPathStyle.h"
 
 extern  "C" AIUnicodeStringSuite*		sAIUnicodeString;
 extern  "C" SPBlocksSuite*				sSPBlocks;
@@ -35,6 +38,9 @@ extern	"C" AIDocumentViewSuite*		sAIDocumentView;
 extern	"C" AIDocumentSuite*			sAIDocument;
 extern	"C" AIMatchingArtSuite*			sAIMatchingArt;
 extern	"C" AIStringFormatUtilsSuite*	sAIStringFormatUtils;
+extern	"C" AICursorSnapSuite*			sAICursorSnap;
+extern	"C" AIPathSuite*					sAIPath;
+extern	"C" AIPathStyleSuite*			sAIPathStyle;
 
 #endif // __CHARTSSUITES_H__
 

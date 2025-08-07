@@ -62,6 +62,22 @@ private:
 	/** The cursor location as a view coordinate.
 	*/
 	AIPoint fCursorViewPoint;
+	
+	/** Rectangle drawing state
+	*/
+	ASBoolean fIsDrawingRect;
+	
+	/** Start point of rectangle in artwork coordinates
+	*/
+	AIRealPoint fRectStartPoint;
+	
+	/** Current end point of rectangle in artwork coordinates
+	*/
+	AIRealPoint fRectEndPoint;
+	
+	/** Snapped point from smart guides
+	*/
+	AIRealPoint fSnappedPoint;
 
 public:
 
@@ -100,6 +116,30 @@ public:
 		@return kNoErr on success, other ASErr otherwise.
 	*/
 	ASErr CheckForArtHit(AIToolMessage* message);
+	
+	/** Handle mouse down event to start drawing rectangle
+		@param message IN tool message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr MouseDown(AIToolMessage* message);
+	
+	/** Handle mouse drag event to update rectangle preview
+		@param message IN tool message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr MouseDrag(AIToolMessage* message);
+	
+	/** Handle mouse up event to finish drawing rectangle
+		@param message IN tool message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr MouseUp(AIToolMessage* message);
+	
+	/** Track cursor with smart guides support
+		@param message IN tool message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr TrackCursor(AIToolMessage* message);
 
 	/**	Draws the art bounds annotation.
 		@param message IN message data.
@@ -112,6 +152,12 @@ public:
 		@return kNoErr on success, other ASErr otherwise.
 	*/
 	ASErr DrawCursorAnnotation(AIAnnotatorMessage* message);
+	
+	/** Draws the rectangle preview annotation
+		@param message IN message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr DrawRectanglePreview(AIAnnotatorMessage* message);
 
 	/**	Invalidates an area on the artboard so affected annotations will be redrawn.
 		@param invalRealRect IN area to invalidate as an AIRealRect.

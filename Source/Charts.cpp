@@ -24,15 +24,22 @@ const AIRGBColor BKGND_COLOR = {65000, 65000, 40000};
 */
 const AIRGBColor BORDER_COLOR = {0, 0, 0};
 
+/** Blue color for rectangle preview
+*/
+const AIRGBColor PREVIEW_COLOR = {0, 30000, 65000};
+
 /*
 */
-Charts::Charts(): fArtLastHit(NULL), fArtUpdate(false), fCursorUpdate(false)
+Charts::Charts(): fArtLastHit(NULL), fArtUpdate(false), fCursorUpdate(false), fIsDrawingRect(false)
 {
 	this->Init(fCursorViewPoint);
 	this->Init(fCursorArtPoint);
 	this->Init(fArtRect);
 	this->Init(fCursorRect);
 	this->Init(fArtArtworkBounds);
+	this->Init(fRectStartPoint);
+	this->Init(fRectEndPoint);
+	this->Init(fSnappedPoint);
 }
 
 /*
@@ -65,74 +72,364 @@ void Charts::Init(AIRealRect& rect)
 
 /*
 */
+ASErr Charts::TrackCursor(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		// Get current view
+		AIDocumentViewHandle vh = NULL;
+		result = sAIDocumentView->GetNthDocumentView(0, &vh);
+		aisdk::check_ai_error(result);
+		
+		// Update cursor point
+		this->fCursorArtPoint = message->cursor;
+		
+		// Check if smart guides are active and get snap point
+		if(sAICursorSnap && sAICursorSnap->UseSmartGuides(vh)) {
+			// Use smart guides to get snapped point
+			// Control letters: A=anchor, T=path, F=fill, G=gap, P=page, L=artboard, M=art, v=view, i=intersect, o=object, f=frame
+			result = sAICursorSnap->Track(vh, fCursorArtPoint, message->event, "ATFGPLM v i o f", &fSnappedPoint);
+			if (result == kNoErr) {
+				// If dragging, update the end point with snapped position
+				if (fIsDrawingRect) {
+					fRectEndPoint = fSnappedPoint;
+				}
+			}
+		} else {
+			// No smart guides, use raw cursor position
+			fSnappedPoint = fCursorArtPoint;
+			if (fIsDrawingRect) {
+				fRectEndPoint = fCursorArtPoint;
+			}
+		}
+		
+		// Convert to view coordinates for display
+		result = sAIDocumentView->ArtworkPointToViewPoint(vh, &fCursorArtPoint, &fCursorViewPoint);
+		aisdk::check_ai_error(result);
+		
+		// If drawing, invalidate to update preview
+		if (fIsDrawingRect) {
+			// Invalidate entire view for simplicity
+			AIRealRect viewBounds = {0, 0, 0, 0};
+			result = sAIDocumentView->GetDocumentViewBounds(vh, &viewBounds);
+			aisdk::check_ai_error(result);
+			result = this->InvalidateRect(viewBounds);
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr Charts::MouseDown(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		// Get current view
+		AIDocumentViewHandle vh = NULL;
+		result = sAIDocumentView->GetNthDocumentView(0, &vh);
+		aisdk::check_ai_error(result);
+		
+		// Start drawing rectangle
+		fIsDrawingRect = true;
+		
+		// Use smart guides if available
+		if(sAICursorSnap && sAICursorSnap->UseSmartGuides(vh)) {
+			AIRealPoint snappedStart;
+			result = sAICursorSnap->Track(vh, message->cursor, message->event, "ATFGPLM v i o f", &snappedStart);
+			if (result == kNoErr) {
+				fRectStartPoint = snappedStart;
+			} else {
+				fRectStartPoint = message->cursor;
+			}
+		} else {
+			fRectStartPoint = message->cursor;
+		}
+		
+		fRectEndPoint = fRectStartPoint;
+		
+		// Clear any previous art selection
+		if (sAIMatchingArt->IsSomeArtSelected) {
+			result = sAIMatchingArt->DeselectAll();
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr Charts::MouseDrag(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		if (fIsDrawingRect) {
+			// TrackCursor will handle updating the end point with smart guides
+			result = this->TrackCursor(message);
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr Charts::MouseUp(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		if (fIsDrawingRect) {
+			// Get current view
+			AIDocumentViewHandle vh = NULL;
+			result = sAIDocumentView->GetNthDocumentView(0, &vh);
+			aisdk::check_ai_error(result);
+			
+			// Use smart guides for final position if available
+			if(sAICursorSnap && sAICursorSnap->UseSmartGuides(vh)) {
+				AIRealPoint snappedEnd;
+				result = sAICursorSnap->Track(vh, message->cursor, message->event, "ATFGPLM v i o f", &snappedEnd);
+				if (result == kNoErr) {
+					fRectEndPoint = snappedEnd;
+				} else {
+					fRectEndPoint = message->cursor;
+				}
+			} else {
+				fRectEndPoint = message->cursor;
+			}
+			
+			// Create the actual rectangle art
+			if (fRectStartPoint.h != fRectEndPoint.h || fRectStartPoint.v != fRectEndPoint.v) {
+				// Create a new path art
+				AIArtHandle rectArt = NULL;
+				short paintOrder = kPlaceAboveAll;
+				result = sAIArt->NewArt(kPathArt, paintOrder, NULL, &rectArt);
+				aisdk::check_ai_error(result);
+				
+				// Set up the rectangle path
+				result = sAIPath->SetPathClosed(rectArt, true);
+				aisdk::check_ai_error(result);
+				
+				// Calculate rectangle corners
+				AIReal left = min(fRectStartPoint.h, fRectEndPoint.h);
+				AIReal right = max(fRectStartPoint.h, fRectEndPoint.h);
+				AIReal top = max(fRectStartPoint.v, fRectEndPoint.v);
+				AIReal bottom = min(fRectStartPoint.v, fRectEndPoint.v);
+				
+				// Add four corner points
+				AIPathSegment segments[4];
+				
+				// Top-left corner
+				segments[0].p.h = left;
+				segments[0].p.v = top;
+				segments[0].in = segments[0].out = segments[0].p;
+				segments[0].corner = true;
+				
+				// Top-right corner
+				segments[1].p.h = right;
+				segments[1].p.v = top;
+				segments[1].in = segments[1].out = segments[1].p;
+				segments[1].corner = true;
+				
+				// Bottom-right corner
+				segments[2].p.h = right;
+				segments[2].p.v = bottom;
+				segments[2].in = segments[2].out = segments[2].p;
+				segments[2].corner = true;
+				
+				// Bottom-left corner
+				segments[3].p.h = left;
+				segments[3].p.v = bottom;
+				segments[3].in = segments[3].out = segments[3].p;
+				segments[3].corner = true;
+				
+				// Set the path segments
+				result = sAIPath->SetPathSegmentCount(rectArt, 4);
+				aisdk::check_ai_error(result);
+				
+				for (int i = 0; i < 4; i++) {
+					result = sAIPath->SetPathSegments(rectArt, i, 1, &segments[i]);
+					aisdk::check_ai_error(result);
+				}
+				
+				// Apply default style (or custom style)
+				AIPathStyle style;
+				AIBoolean hasAdvFill = false;
+				result = sAIPathStyle->GetPathStyle(rectArt, &style, &hasAdvFill);
+				aisdk::check_ai_error(result);
+				
+				// Set stroke to black and fill to none
+				style.stroke.color.kind = kGrayColor;
+				style.stroke.color.c.g.gray = kAIRealOne;  // Black
+				style.strokePaint = true;
+				style.fillPaint = false;
+				
+				result = sAIPathStyle->SetPathStyle(rectArt, &style);
+				aisdk::check_ai_error(result);
+				
+				// Select the new rectangle
+				result = sAIArt->SetArtUserAttr(rectArt, kArtSelected, kArtSelected);
+				aisdk::check_ai_error(result);
+			}
+			
+			// Stop drawing
+			fIsDrawingRect = false;
+			
+			// Invalidate to clear preview
+			AIRealRect viewBounds = {0, 0, 0, 0};
+			result = sAIDocumentView->GetDocumentViewBounds(vh, &viewBounds);
+			aisdk::check_ai_error(result);
+			result = this->InvalidateRect(viewBounds);
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	return result;
+}
+
+/*
+*/
 ASErr Charts::CheckForArtHit(AIToolMessage* message)
 {
 	ASErr result = kNoErr;
 	try {
-		// Set cursor location.
-		this->fCursorArtPoint = message->cursor;
-		SDK_ASSERT(sAIDocumentView);
-		result = sAIDocumentView->ArtworkPointToViewPoint(NULL, &fCursorArtPoint, &fCursorViewPoint);
-		aisdk::check_ai_error(result);
-
-		// Check if cursor is over any art.
-		AIHitRef hitRef = NULL;
-		AIToolHitData toolHitData;
-		SDK_ASSERT(sAIHitTest);
-		result = sAIHitTest->HitTest(NULL, &fCursorArtPoint, kAllHitRequest, &hitRef);
-		aisdk::check_ai_error(result);
-		result = sAIHitTest->GetHitData(hitRef, &toolHitData);
-		aisdk::check_ai_error(result);
-		result = sAIHitTest->Release(hitRef);
-		aisdk::check_ai_error(result);
-		
-		if (toolHitData.hit && toolHitData.object != NULL && toolHitData.object != fArtLastHit) {
-			// New art item hit, set last art object hit in class to art item hit.
-			fArtLastHit = toolHitData.object;
-			fArtUpdate = true;
-			fCursorUpdate = true;
-
-			// Get the art bounds in artwork coordinates.
-			SDK_ASSERT(sAIArt);
-			result = sAIArt->GetArtTransformBounds(fArtLastHit, NULL, kNoStrokeBounds, &fArtArtworkBounds);
-			aisdk::check_ai_error(result);
-
-			AIPoint viewTopRight{ 0, 0 };
-			AIRealPoint artworkTopRight{ this->fArtArtworkBounds.right, this->fArtArtworkBounds.top };
+		// Only check for art hit when not drawing
+		if (!fIsDrawingRect) {
+			// Set cursor location.
+			this->fCursorArtPoint = message->cursor;
 			SDK_ASSERT(sAIDocumentView);
-			result = sAIDocumentView->ArtworkPointToViewPoint(NULL, &artworkTopRight, &viewTopRight);
+			result = sAIDocumentView->ArtworkPointToViewPoint(NULL, &fCursorArtPoint, &fCursorViewPoint);
 			aisdk::check_ai_error(result);
 
-			// Set the annotation location to the right of the art.
-			fArtRect.left = viewTopRight.h + 10;
-			fArtRect.top = viewTopRight.v;
-			fArtRect.right = fArtRect.left + 80;
-			fArtRect.bottom = fArtRect.top + 70;
+			// Check if cursor is over any art.
+			AIHitRef hitRef = NULL;
+			AIToolHitData toolHitData;
+			SDK_ASSERT(sAIHitTest);
+			result = sAIHitTest->HitTest(NULL, &fCursorArtPoint, kAllHitRequest, &hitRef);
+			aisdk::check_ai_error(result);
+			result = sAIHitTest->GetHitData(hitRef, &toolHitData);
+			aisdk::check_ai_error(result);
+			result = sAIHitTest->Release(hitRef);
+			aisdk::check_ai_error(result);
 			
-			// If other art is selected, deselect all art.
-			SDK_ASSERT(sAIMatchingArt);
-			if (sAIMatchingArt->IsSomeArtSelected) {
-				result = sAIMatchingArt->DeselectAll();
-				aisdk::check_ai_error(result); 
-			}
+			if (toolHitData.hit && toolHitData.object != NULL && toolHitData.object != fArtLastHit) {
+				// New art item hit, set last art object hit in class to art item hit.
+				fArtLastHit = toolHitData.object;
+				fArtUpdate = true;
+				fCursorUpdate = true;
 
-			// Select art hit.
-			result = sAIArt->SetArtUserAttr(fArtLastHit, kArtSelected, kArtSelected);
-			aisdk::check_ai_error(result);
+				// Get the art bounds in artwork coordinates.
+				SDK_ASSERT(sAIArt);
+				result = sAIArt->GetArtTransformBounds(fArtLastHit, NULL, kNoStrokeBounds, &fArtArtworkBounds);
+				aisdk::check_ai_error(result);
+
+				AIPoint viewTopRight{ 0, 0 };
+				AIRealPoint artworkTopRight{ this->fArtArtworkBounds.right, this->fArtArtworkBounds.top };
+				SDK_ASSERT(sAIDocumentView);
+				result = sAIDocumentView->ArtworkPointToViewPoint(NULL, &artworkTopRight, &viewTopRight);
+				aisdk::check_ai_error(result);
+
+				// Set the annotation location to the right of the art.
+				fArtRect.left = viewTopRight.h + 10;
+				fArtRect.top = viewTopRight.v;
+				fArtRect.right = fArtRect.left + 80;
+				fArtRect.bottom = fArtRect.top + 70;
+				
+				// If other art is selected, deselect all art.
+				SDK_ASSERT(sAIMatchingArt);
+				if (sAIMatchingArt->IsSomeArtSelected) {
+					result = sAIMatchingArt->DeselectAll();
+					aisdk::check_ai_error(result); 
+				}
+
+				// Select art hit.
+				result = sAIArt->SetArtUserAttr(fArtLastHit, kArtSelected, kArtSelected);
+				aisdk::check_ai_error(result);
+			}
+			else if (fArtLastHit != NULL && toolHitData.object == fArtLastHit) {
+				fCursorUpdate = true;
+				result = this->InvalidateRect(fCursorRect);
+				aisdk::check_ai_error(result);
+			}
+			else {
+				// No art hit, deselect all art.
+				SDK_ASSERT(sAIMatchingArt);
+				result = sAIMatchingArt->DeselectAll();
+				aisdk::check_ai_error(result);
+				fArtLastHit = NULL;
+				fArtUpdate = false;
+				fCursorUpdate = false;
+			}
 		}
-		else if (fArtLastHit != NULL && toolHitData.object == fArtLastHit) {
-			fCursorUpdate = true;
-			result = this->InvalidateRect(fCursorRect);
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr Charts::DrawRectanglePreview(AIAnnotatorMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		if (fIsDrawingRect) {
+			// Convert artwork coordinates to view coordinates
+			AIPoint startView, endView;
+			result = sAIDocumentView->ArtworkPointToViewPoint(NULL, &fRectStartPoint, &startView);
 			aisdk::check_ai_error(result);
-		}
-		else {
-			// No art hit, deselect all art.
-			SDK_ASSERT(sAIMatchingArt);
-			result = sAIMatchingArt->DeselectAll();
+			result = sAIDocumentView->ArtworkPointToViewPoint(NULL, &fRectEndPoint, &endView);
 			aisdk::check_ai_error(result);
-			fArtLastHit = NULL;
-			fArtUpdate = false;
-			fCursorUpdate = false;
+			
+			// Create view rectangle
+			AIRect previewRect;
+			previewRect.left = min(startView.h, endView.h);
+			previewRect.right = max(startView.h, endView.h);
+			previewRect.top = min(startView.v, endView.v);
+			previewRect.bottom = max(startView.v, endView.v);
+			
+			// Draw preview rectangle
+			SDK_ASSERT(sAIAnnotatorDrawer);
+			sAIAnnotatorDrawer->SetColor(message->drawer, PREVIEW_COLOR);
+			sAIAnnotatorDrawer->SetLineWidth(message->drawer, 1.0);
+			sAIAnnotatorDrawer->SetLineDashed(message->drawer, true);
+			result = sAIAnnotatorDrawer->DrawRect(message->drawer, previewRect, false);
+			aisdk::check_ai_error(result);
+			sAIAnnotatorDrawer->SetLineDashed(message->drawer, false);
+			
+			// Draw dimensions text
+			AIReal width = fabs(fRectEndPoint.h - fRectStartPoint.h);
+			AIReal height = fabs(fRectEndPoint.v - fRectStartPoint.v);
+			
+			ai::UnicodeString dimStr;
+			ai::NumberFormat numFormat;
+			ai::UnicodeString widthStr, heightStr;
+			numFormat.toString(width, 2, widthStr);
+			numFormat.toString(height, 2, heightStr);
+			dimStr = ai::UnicodeString("W: ").append(widthStr).append(ai::UnicodeString(" H: ")).append(heightStr);
+			
+			// Draw dimension text near cursor
+			AIPoint textPos;
+			textPos.h = endView.h + 10;
+			textPos.v = endView.v - 10;
+			
+			result = sAIAnnotatorDrawer->SetFontPreset(message->drawer, kAIAFSmall);
+			aisdk::check_ai_error(result);
+			sAIAnnotatorDrawer->SetColor(message->drawer, BORDER_COLOR);
+			result = sAIAnnotatorDrawer->DrawText(message->drawer, dimStr, textPos, false);
+			aisdk::check_ai_error(result);
 		}
 	}
 	catch (ai::Error& ex) {
@@ -147,7 +444,8 @@ ASErr Charts::DrawArtAnnotation(AIAnnotatorMessage* message)
 {
 	ASErr result = kNoErr;
 	try {
-		if (fArtUpdate) {
+		// Only draw art annotation when not drawing rectangle
+		if (!fIsDrawingRect && fArtUpdate) {
 
 			// Draw a light yellow filled rectangle
 			SDK_ASSERT(sAIAnnotatorDrawer);
@@ -206,7 +504,8 @@ ASErr Charts::DrawCursorAnnotation(AIAnnotatorMessage* message)
 {
 	ASErr result = kNoErr;
 	try {	
-		if (fCursorUpdate) {
+		// Only show cursor coordinates when not drawing
+		if (!fIsDrawingRect && fCursorUpdate) {
 			// Get cursor location as string.
 			ai::UnicodeString pointStr;
 			result = this->GetPointString(fCursorArtPoint, pointStr);
@@ -372,4 +671,3 @@ ASErr Charts::GetPointString(const AIRealPoint& point, ai::UnicodeString& pointS
 
 	return result;
 }
-

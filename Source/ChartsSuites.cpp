@@ -31,6 +31,9 @@ extern "C"
 	AIDocumentSuite*			sAIDocument = NULL;
 	AIMatchingArtSuite*			sAIMatchingArt = NULL;
 	AIStringFormatUtilsSuite*	sAIStringFormatUtils = NULL;
+	AICursorSnapSuite*			sAICursorSnap = NULL;
+	AIPathSuite*				sAIPath = NULL;
+	AIPathStyleSuite*			sAIPathStyle = NULL;
 }
 
 ImportSuite gImportSuites[] = 
@@ -47,6 +50,9 @@ ImportSuite gImportSuites[] =
 	kAIDocumentSuite, kAIDocumentSuiteVersion, &sAIDocument,
 	kAIMatchingArtSuite, kAIMatchingArtSuiteVersion, &sAIMatchingArt,
 	kAIStringFormatUtilsSuite, kAIStringFormatUtilsSuiteVersion, &sAIStringFormatUtils,
+	kAICursorSnapSuite, kAICursorSnapSuiteVersion, &sAICursorSnap,
+	kAIPathSuite, kAIPathSuiteVersion, &sAIPath,
+	kAIPathStyleSuite, kAIPathStyleSuiteVersion, &sAIPathStyle,
 	nullptr, 0, nullptr
 };
 // End ChartsSuites.cpp
