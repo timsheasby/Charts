@@ -28,6 +28,10 @@ const AIRGBColor BORDER_COLOR = {0, 0, 0};
 */
 const AIRGBColor PREVIEW_COLOR = {0, 30000, 65000};
 
+/** White background for text
+*/
+const AIRGBColor TEXT_BACKGROUND = {65535, 65535, 65535};
+
 /*
 */
 Charts::Charts(): fArtLastHit(NULL), fArtUpdate(false), fCursorUpdate(false), fIsDrawingRect(false)
@@ -400,16 +404,15 @@ ASErr Charts::DrawRectanglePreview(AIAnnotatorMessage* message)
 			previewRect.top = min(startView.v, endView.v);
 			previewRect.bottom = max(startView.v, endView.v);
 			
-			// Draw preview rectangle
+			// Draw preview rectangle with solid blue lines
 			SDK_ASSERT(sAIAnnotatorDrawer);
 			sAIAnnotatorDrawer->SetColor(message->drawer, PREVIEW_COLOR);
-			sAIAnnotatorDrawer->SetLineWidth(message->drawer, 1.0);
-			sAIAnnotatorDrawer->SetLineDashed(message->drawer, true);
+			sAIAnnotatorDrawer->SetLineWidth(message->drawer, 2.0);
+			sAIAnnotatorDrawer->SetLineDashed(message->drawer, false);
 			result = sAIAnnotatorDrawer->DrawRect(message->drawer, previewRect, false);
 			aisdk::check_ai_error(result);
-			sAIAnnotatorDrawer->SetLineDashed(message->drawer, false);
 			
-			// Draw dimensions text
+			// Draw dimensions text at end of drag
 			AIReal width = fabs(fRectEndPoint.h - fRectStartPoint.h);
 			AIReal height = fabs(fRectEndPoint.v - fRectStartPoint.v);
 			
@@ -418,15 +421,38 @@ ASErr Charts::DrawRectanglePreview(AIAnnotatorMessage* message)
 			ai::UnicodeString widthStr, heightStr;
 			numFormat.toString(width, 2, widthStr);
 			numFormat.toString(height, 2, heightStr);
-			dimStr = ai::UnicodeString("W: ").append(widthStr).append(ai::UnicodeString(" H: ")).append(heightStr);
+			dimStr = ai::UnicodeString("W: ").append(widthStr).append(ai::UnicodeString("  H: ")).append(heightStr);
 			
-			// Draw dimension text near cursor
+			// Draw dimension text near end point with background
 			AIPoint textPos;
 			textPos.h = endView.h + 10;
-			textPos.v = endView.v - 10;
+			textPos.v = endView.v + 20;
 			
-			result = sAIAnnotatorDrawer->SetFontPreset(message->drawer, kAIAFSmall);
+			// Get text bounds for background
+			AIRect textBounds;
+			result = sAIAnnotatorDrawer->SetFontPreset(message->drawer, kAIAFMedium);
 			aisdk::check_ai_error(result);
+			result = sAIAnnotatorDrawer->GetTextBounds(message->drawer, dimStr, &textPos, false, textBounds, false);
+			aisdk::check_ai_error(result);
+			
+			// Expand bounds for padding
+			textBounds.left -= 4;
+			textBounds.right += 4;
+			textBounds.top -= 2;
+			textBounds.bottom += 2;
+			
+			// Draw white background
+			sAIAnnotatorDrawer->SetColor(message->drawer, TEXT_BACKGROUND);
+			result = sAIAnnotatorDrawer->DrawRect(message->drawer, textBounds, true);
+			aisdk::check_ai_error(result);
+			
+			// Draw border
+			sAIAnnotatorDrawer->SetColor(message->drawer, BORDER_COLOR);
+			sAIAnnotatorDrawer->SetLineWidth(message->drawer, 0.5);
+			result = sAIAnnotatorDrawer->DrawRect(message->drawer, textBounds, false);
+			aisdk::check_ai_error(result);
+			
+			// Draw text
 			sAIAnnotatorDrawer->SetColor(message->drawer, BORDER_COLOR);
 			result = sAIAnnotatorDrawer->DrawText(message->drawer, dimStr, textPos, false);
 			aisdk::check_ai_error(result);

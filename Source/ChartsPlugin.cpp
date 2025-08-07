@@ -249,11 +249,77 @@ ASErr ChartsPlugin::TrackToolCursor(AIToolMessage* message)
 	ASErr result = kNoErr;
 	try {
 		if (this->fAnnotator) {
-			result = this->fAnnotator->CheckForArtHit(message);
+			// Track cursor for rectangle drawing and smart guides
+			result = this->fAnnotator->TrackCursor(message);
 			aisdk::check_ai_error(result);
+			
+			// Set crosshair cursor
 			if(sAIUser != NULL)
 				result = sAIUser->SetCursor(kAICrossCursorID, fResourceManagerHandle);
             aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	catch(...)
+	{
+		result = kCantHappenErr;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr ChartsPlugin::ToolMouseDown(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		if (this->fAnnotator) {
+			result = this->fAnnotator->MouseDown(message);
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	catch(...)
+	{
+		result = kCantHappenErr;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr ChartsPlugin::ToolMouseDrag(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		if (this->fAnnotator) {
+			result = this->fAnnotator->MouseDrag(message);
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	catch(...)
+	{
+		result = kCantHappenErr;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr ChartsPlugin::ToolMouseUp(AIToolMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		if (this->fAnnotator) {
+			result = this->fAnnotator->MouseUp(message);
+			aisdk::check_ai_error(result);
 		}
 	}
 	catch (ai::Error& ex) {
@@ -393,10 +459,8 @@ ASErr ChartsPlugin::DrawAnnotation(AIAnnotatorMessage* message)
 	ASErr result = kNoErr;
 	try {
 		if (this->fAnnotator) {
-			result = this->fAnnotator->DrawArtAnnotation(message);
-			aisdk::check_ai_error(result);
-
-			result = this->fAnnotator->DrawCursorAnnotation(message);
+			// Only draw the rectangle preview annotation
+			result = this->fAnnotator->DrawRectanglePreview(message);
 			aisdk::check_ai_error(result);
 		}
 	}

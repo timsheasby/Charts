@@ -143,6 +143,24 @@ protected:
 		@return kNoErr on success, other ASErr otherwise.
 	*/
 	virtual ASErr TrackToolCursor(AIToolMessage* message);
+	
+	/**	Handle mouse down event.
+		@param message IN message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	virtual ASErr ToolMouseDown(AIToolMessage* message);
+	
+	/**	Handle mouse drag event.
+		@param message IN message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	virtual ASErr ToolMouseDrag(AIToolMessage* message);
+	
+	/**	Handle mouse up event.
+		@param message IN message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	virtual ASErr ToolMouseUp(AIToolMessage* message);
 
 	/**	Activates this plug-ins annotator.
 		@param message IN message data.
