@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="S_SPCharts_Lg_D_2x" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 44 36">
+  <!-- Generator: Adobe Illustrator 29.6.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 9)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #ffffff;
+        isolation: isolate;
+        opacity: .65;
+      }
+    </style>
+  </defs>
+  <path class="st0" d="M6,30V3.5c0-.28-.22-.5-.5-.5h-2c-.28,0-.5.22-.5.5v29c0,.28.22.5.5.5h37c.28,0,.5-.22.5-.5v-2c0-.28-.22-.5-.5-.5H6Z"/>
+  <path class="st0" d="M11.5,11h0c1.38,0,2.5,1.12,2.5,2.5v15.5h-5v-15.5c0-1.38,1.12-2.5,2.5-2.5Z"/>
+  <path class="st0" d="M18.5,9h0c1.38,0,2.5,1.12,2.5,2.5v17.5h-5V11.5c0-1.38,1.12-2.5,2.5-2.5Z"/>
+  <path class="st0" d="M27.5,14h0c1.38,0,2.5,1.12,2.5,2.5v12.5h-5v-12.5c0-1.38,1.12-2.5,2.5-2.5Z"/>
+  <path class="st0" d="M34.5,5h0c1.38,0,2.5,1.12,2.5,2.5v21.5h-5V7.5c0-1.38,1.12-2.5,2.5-2.5Z"/>
+</svg>
