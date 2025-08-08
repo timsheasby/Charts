@@ -29,6 +29,7 @@
 #include "AIPluginGroup.h"
 #include "AIRealMath.h"
 #include "AITextFrame.h"
+#include "AIATETextUtil.h"
 
 extern  "C" AIUnicodeStringSuite*		sAIUnicodeString;
 extern  "C" SPBlocksSuite*				sSPBlocks;
@@ -49,6 +50,7 @@ extern	"C" AIDictionarySuite*			sAIDictionary;
 extern	"C" AIPluginGroupSuite*			sAIPluginGroup;
 extern	"C" AITextFrameSuite*			sAITextFrame;
 extern	"C" AIRealMathSuite*			sAIRealMath;
+extern	"C" AIATETextUtilSuite*		sAIATETextUtil;
 
 #endif // __CHARTSSUITES_H__
 

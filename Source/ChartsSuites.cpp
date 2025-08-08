@@ -38,6 +38,7 @@ extern "C"
 	AIPluginGroupSuite*			sAIPluginGroup = NULL;
 	AITextFrameSuite*			sAITextFrame = NULL;
 	AIRealMathSuite*			sAIRealMath = NULL;
+	AIATETextUtilSuite*			sAIATETextUtil = NULL;
 }
 
 ImportSuite gImportSuites[] = 
@@ -61,6 +62,7 @@ ImportSuite gImportSuites[] =
 	kAIPluginGroupSuite, kAIPluginGroupSuiteVersion, &sAIPluginGroup,
 	kAITextFrameSuite, kAITextFrameSuiteVersion, &sAITextFrame,
 	kAIRealMathSuite, kAIRealMathSuiteVersion, &sAIRealMath,
+	kAIATETextUtilSuite, kAIATETextUtilSuiteVersion, &sAIATETextUtil,
 	nullptr, 0, nullptr
 };
 // End ChartsSuites.cpp

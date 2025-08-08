@@ -997,10 +997,140 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			result = sAIPathStyle->SetPathStyle(column, &style);
 			aisdk::check_ai_error(result);
 			
-			// TODO: Add X-axis labels - text frame API needs proper matrix and content setting
+			// Add tick mark for X-axis label position
+		AIArtHandle tick;
+		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &tick);
+		if (result == kNoErr) {
+			result = sAIPath->SetPathSegmentCount(tick, 2);
+			AIPathSegment tickSegs[2];
+			tickSegs[0].p.h = columnLeft + columnWidth/2;
+			tickSegs[0].p.v = plotArea.bottom;
+			tickSegs[0].in = tickSegs[0].out = tickSegs[0].p;
+			tickSegs[0].corner = true;
+			
+			tickSegs[1].p.h = columnLeft + columnWidth/2;
+			tickSegs[1].p.v = plotArea.bottom - 5;  // 5 point tick
+			tickSegs[1].in = tickSegs[1].out = tickSegs[1].p;
+			tickSegs[1].corner = true;
+			
+			for (int j = 0; j < 2; j++) {
+				result = sAIPath->SetPathSegments(tick, j, 1, &tickSegs[j]);
+			}
+			result = sAIPath->SetPathClosed(tick, false);
+			
+			// Style the tick mark
+			AIPathStyle tickStyle;
+			AIBoolean hasAdvFill = false;
+			sAIPathStyle->GetPathStyle(tick, &tickStyle, &hasAdvFill);
+			tickStyle.fillPaint = false;
+			tickStyle.strokePaint = true;
+			tickStyle.stroke.color.kind = kGrayColor;
+			tickStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+			tickStyle.stroke.width = 0.5;
+			sAIPathStyle->SetPathStyle(tick, &tickStyle);
+		}
 		}
 		
-		// TODO: Add Y-axis labels - text frame API needs proper matrix and content setting
+		// Add Y-axis (vertical line) and tick marks
+	AIArtHandle yAxis;
+	result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &yAxis);
+	if (result == kNoErr) {
+		result = sAIPath->SetPathSegmentCount(yAxis, 2);
+		AIPathSegment axisSegs[2];
+		axisSegs[0].p.h = plotArea.left;
+		axisSegs[0].p.v = plotArea.bottom;
+		axisSegs[0].in = axisSegs[0].out = axisSegs[0].p;
+		axisSegs[0].corner = true;
+		
+		axisSegs[1].p.h = plotArea.left;
+		axisSegs[1].p.v = plotArea.top;
+		axisSegs[1].in = axisSegs[1].out = axisSegs[1].p;
+		axisSegs[1].corner = true;
+		
+		for (int j = 0; j < 2; j++) {
+			result = sAIPath->SetPathSegments(yAxis, j, 1, &axisSegs[j]);
+		}
+		result = sAIPath->SetPathClosed(yAxis, false);
+		
+		// Style the axis
+		AIPathStyle axisStyle;
+		AIBoolean hasAdvFill = false;
+		sAIPathStyle->GetPathStyle(yAxis, &axisStyle, &hasAdvFill);
+		axisStyle.fillPaint = false;
+		axisStyle.strokePaint = true;
+		axisStyle.stroke.color.kind = kGrayColor;
+		axisStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+		axisStyle.stroke.width = 0.5;
+		sAIPathStyle->SetPathStyle(yAxis, &axisStyle);
+	}
+	
+	// Add X-axis (horizontal line)
+	AIArtHandle xAxis;
+	result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &xAxis);
+	if (result == kNoErr) {
+		result = sAIPath->SetPathSegmentCount(xAxis, 2);
+		AIPathSegment axisSegs[2];
+		axisSegs[0].p.h = plotArea.left;
+		axisSegs[0].p.v = plotArea.bottom;
+		axisSegs[0].in = axisSegs[0].out = axisSegs[0].p;
+		axisSegs[0].corner = true;
+		
+		axisSegs[1].p.h = plotArea.right;
+		axisSegs[1].p.v = plotArea.bottom;
+		axisSegs[1].in = axisSegs[1].out = axisSegs[1].p;
+		axisSegs[1].corner = true;
+		
+		for (int j = 0; j < 2; j++) {
+			result = sAIPath->SetPathSegments(xAxis, j, 1, &axisSegs[j]);
+		}
+		result = sAIPath->SetPathClosed(xAxis, false);
+		
+		// Style the axis
+		AIPathStyle axisStyle;
+		AIBoolean hasAdvFill = false;
+		sAIPathStyle->GetPathStyle(xAxis, &axisStyle, &hasAdvFill);
+		axisStyle.fillPaint = false;
+		axisStyle.strokePaint = true;
+		axisStyle.stroke.color.kind = kGrayColor;
+		axisStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+		axisStyle.stroke.width = 0.5;
+		sAIPathStyle->SetPathStyle(xAxis, &axisStyle);
+	}
+	
+	// Add Y-axis tick marks (for 0, 25, 50, 75, 100)
+	for (int i = 0; i <= 4; i++) {
+		AIArtHandle tick;
+		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &tick);
+		if (result == kNoErr) {
+			result = sAIPath->SetPathSegmentCount(tick, 2);
+			AIPathSegment tickSegs[2];
+			tickSegs[0].p.h = plotArea.left;
+			tickSegs[0].p.v = plotArea.bottom + (i * plotHeight / 4);
+			tickSegs[0].in = tickSegs[0].out = tickSegs[0].p;
+			tickSegs[0].corner = true;
+			
+			tickSegs[1].p.h = plotArea.left - 5;  // 5 point tick extending left
+			tickSegs[1].p.v = plotArea.bottom + (i * plotHeight / 4);
+			tickSegs[1].in = tickSegs[1].out = tickSegs[1].p;
+			tickSegs[1].corner = true;
+			
+			for (int j = 0; j < 2; j++) {
+				result = sAIPath->SetPathSegments(tick, j, 1, &tickSegs[j]);
+			}
+			result = sAIPath->SetPathClosed(tick, false);
+			
+			// Style the tick mark
+			AIPathStyle tickStyle;
+			AIBoolean hasAdvFill = false;
+			sAIPathStyle->GetPathStyle(tick, &tickStyle, &hasAdvFill);
+			tickStyle.fillPaint = false;
+			tickStyle.strokePaint = true;
+			tickStyle.stroke.color.kind = kGrayColor;
+			tickStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+			tickStyle.stroke.width = 0.5;
+			sAIPathStyle->SetPathStyle(tick, &tickStyle);
+		}
+	}
 	}
 	catch (ai::Error& ex) {
 		result = ex;

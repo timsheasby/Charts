@@ -133,4 +133,5 @@ dependencies: \
   ../../illustratorapi/illustrator/AIDictionary.h \
   ../../illustratorapi/illustrator/AIPluginGroup.h \
   ../../illustratorapi/illustrator/AIRealMath.h \
-  ../../illustratorapi/illustrator/AITextFrame.h
+  ../../illustratorapi/illustrator/AITextFrame.h \
+  ../../illustratorapi/illustrator/AIATETextUtil.h
