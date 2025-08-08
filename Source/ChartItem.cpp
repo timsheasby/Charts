@@ -1054,14 +1054,14 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		const char* categoryLabels[numCategories] = {"Jan", "Feb", "Mar", "Apr", "May"};
 		const char* seriesNames[numSeries] = {"2022", "2023", "2024"};
 		
-		// Define colors for each series
+		// Define CMYK colors for each series
 		struct SeriesColor {
-			AIReal red, green, blue;
+			AIReal cyan, magenta, yellow, black;
 		};
 		SeriesColor seriesColors[numSeries] = {
-			{15000, 35000, 55000},  // Blue for series 1
-			{45000, 25000, 15000},  // Orange for series 2
-			{25000, 45000, 25000}   // Green for series 3
+			{1.0 * kAIRealOne, 0.5 * kAIRealOne, 0.0 * kAIRealOne, 0.0 * kAIRealOne},  // Blue for series 1
+			{0.0 * kAIRealOne, 0.5 * kAIRealOne, 1.0 * kAIRealOne, 0.0 * kAIRealOne},  // Orange for series 2
+			{0.5 * kAIRealOne, 0.0 * kAIRealOne, 1.0 * kAIRealOne, 0.0 * kAIRealOne}   // Green for series 3
 		};
 		
 		// Calculate column dimensions
@@ -1155,20 +1155,26 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 				aisdk::check_ai_error(result);
 				
 				// Column style - use series color
-				result = sAIPathStyle->GetPathStyle(column, &style, &hasAdvFill);
+				AIPathStyle columnStyle;
+				AIBoolean hasAdvFill = false;
+				result = sAIPathStyle->GetPathStyle(column, &columnStyle, &hasAdvFill);
 				aisdk::check_ai_error(result);
 				
-				style.fillPaint = true;
-				style.fill.color.kind = kThreeColor;
-				style.fill.color.c.rgb.red = seriesColors[seriesIdx].red;
-				style.fill.color.c.rgb.green = seriesColors[seriesIdx].green;
-				style.fill.color.c.rgb.blue = seriesColors[seriesIdx].blue;
-				style.strokePaint = true;
-				style.stroke.color.kind = kGrayColor;
-				style.stroke.color.c.g.gray = 0.3 * kAIRealOne;
-				style.stroke.width = 0.5;
+				// Set fill with series color using CMYK
+				columnStyle.fillPaint = true;
+				columnStyle.fill.color.kind = kFourColor;
+				columnStyle.fill.color.c.f.cyan = seriesColors[seriesIdx].cyan;
+				columnStyle.fill.color.c.f.magenta = seriesColors[seriesIdx].magenta;
+				columnStyle.fill.color.c.f.yellow = seriesColors[seriesIdx].yellow;
+				columnStyle.fill.color.c.f.black = seriesColors[seriesIdx].black;
 				
-				result = sAIPathStyle->SetPathStyle(column, &style);
+				// Set stroke
+				columnStyle.strokePaint = true;
+				columnStyle.stroke.color.kind = kGrayColor;
+				columnStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+				columnStyle.stroke.width = 0.5;
+				
+				result = sAIPathStyle->SetPathStyle(column, &columnStyle);
 				aisdk::check_ai_error(result);
 			}
 		}
