@@ -17,8 +17,6 @@
 #include "SDKErrors.h"
 #include "AIPluginGroup.h"
 #include "AITextFrame.h"
-#include "IText.h"
-#include "ATETextSuitesImportHelper.h"
 
 // Initialize static member
 ai::int32 ChartItem::sNextChartID = 1;
@@ -999,7 +997,8 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			result = sAIPathStyle->SetPathStyle(column, &style);
 			aisdk::check_ai_error(result);
 			
-			// Add X-axis label
+			// X-axis label - commented out until ATE linking resolved
+		/*
 		AITextOrientation orient = kHorizontalTextOrientation;
 		AIRealPoint anchor;
 		anchor.h = columnLeft + columnWidth/2;
@@ -1011,10 +1010,11 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			TextRangeRef range = nullptr;
 			result = sAITextFrame->GetATETextRange(xLabel, &range);
 			if (result == kNoErr && range) {
-				ATE::ITextRange textRange(range);
-				textRange.InsertAfter(ai::UnicodeString(labels[i]).as_ASUnicode().c_str());
+				// ATE::ITextRange textRange(range);
+				// textRange.InsertAfter(ai::UnicodeString(labels[i]).as_ASUnicode().c_str());
 			}
 		}
+		*/
 		
 		// Also add tick mark
 		AIArtHandle tick;
@@ -1117,7 +1117,8 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 	
 	// Add Y-axis labels and tick marks (for 0, 25, 50, 75, 100)
 	for (int i = 0; i <= 4; i++) {
-		// Add Y-axis label
+		// Y-axis label - commented out until ATE linking resolved
+		/*
 		AITextOrientation orient = kHorizontalTextOrientation;
 		AIRealPoint anchor;
 		anchor.h = plotArea.left - labelGap - 30;
@@ -1129,14 +1130,15 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			TextRangeRef range = nullptr;
 			result = sAITextFrame->GetATETextRange(yLabel, &range);
 			if (result == kNoErr && range) {
-				ATE::ITextRange textRange(range);
+				// ATE::ITextRange textRange(range);
 				ai::UnicodeString labelText;
 				ai::NumberFormat numFormat;
 				numFormat.toString(i * 25.0, 0, labelText);
 				labelText = labelText + ai::UnicodeString("%");
-				textRange.InsertAfter(labelText.as_ASUnicode().c_str());
+				// textRange.InsertAfter(labelText.as_ASUnicode().c_str());
 			}
 		}
+		*/
 		
 		// Add tick mark
 		AIArtHandle tick;
