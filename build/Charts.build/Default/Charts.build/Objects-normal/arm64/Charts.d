@@ -137,4 +137,5 @@ dependencies: \
   ../../illustratorapi/illustrator/AIRealMath.h \
   ../../illustratorapi/illustrator/AITextFrame.h \
   ../../illustratorapi/illustrator/AIATETextUtil.h \
+  ../../illustratorapi/ate/ATETextSuitesImportHelper.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartItem.h

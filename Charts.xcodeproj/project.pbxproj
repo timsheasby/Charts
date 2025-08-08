@@ -27,6 +27,8 @@
 		A1FEA4EA25E4CA9400BB976A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1FEA4E925E4CA9400BB976A /* Cocoa.framework */; };
 		FAC6F1E517BE2EEB00B50329 /* Charts.r in Rez */ = {isa = PBXBuildFile; fileRef = FAC6F1E417BE2EEB00B50329 /* Charts.r */; };
 		FAC6F1E717BE2EF300B50329 /* Charts2x.r in Rez */ = {isa = PBXBuildFile; fileRef = FAC6F1E617BE2EF300B50329 /* Charts2x.r */; };
+		BE1234560E2FB5EC001EA6E3 /* IText.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE1234570E2FB5EC001EA6E3 /* IText.cpp */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		BE1234580E2FB5EC001EA6E3 /* IThrowException.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BE1234590E2FB5EC001EA6E3 /* IThrowException.cpp */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +58,8 @@
 		A1FEA4E925E4CA9400BB976A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		FAC6F1E417BE2EEB00B50329 /* Charts.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; name = Charts.r; path = Resources/Mac/Charts.r; sourceTree = "<group>"; };
 		FAC6F1E617BE2EF300B50329 /* Charts2x.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; name = Charts2x.r; path = Resources/Mac/Charts2x.r; sourceTree = "<group>"; };
+		BE1234570E2FB5EC001EA6E3 /* IText.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = IText.cpp; path = ../../illustratorapi/ate/IText.cpp; sourceTree = SOURCE_ROOT; };
+		BE1234590E2FB5EC001EA6E3 /* IThrowException.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = IThrowException.cpp; path = ../../illustratorapi/ate/IThrowException.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +86,8 @@
 				2A9235D00E2FB5D2001EA6E3 /* SDKErrors.cpp */,
 				2A9235D10E2FB5D2001EA6E3 /* Suites.cpp */,
 				2AE03E3D0CF6F76A00C6B585 /* IllustratorSDK.cpp */,
+				BE1234570E2FB5EC001EA6E3 /* IText.cpp */,
+				BE1234590E2FB5EC001EA6E3 /* IThrowException.cpp */,
 			);
 			name = Shared;
 			sourceTree = "<group>";
@@ -285,6 +291,8 @@
 				2A9235D70E2FB5D2001EA6E3 /* Suites.cpp in Sources */,
 				2A9235DC0E2FB5EC001EA6E3 /* IAIStringFormatUtils.cpp in Sources */,
 				2A9235DD0E2FB5EC001EA6E3 /* IAIUnicodeString.cpp in Sources */,
+				BE1234560E2FB5EC001EA6E3 /* IText.cpp in Sources */,
+				BE1234580E2FB5EC001EA6E3 /* IThrowException.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -30,6 +30,7 @@
 #include "AIRealMath.h"
 #include "AITextFrame.h"
 #include "AIATETextUtil.h"
+#include "ATETextSuitesImportHelper.h"
 
 extern  "C" AIUnicodeStringSuite*		sAIUnicodeString;
 extern  "C" SPBlocksSuite*				sSPBlocks;

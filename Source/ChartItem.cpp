@@ -17,6 +17,7 @@
 #include "SDKErrors.h"
 #include "AIPluginGroup.h"
 #include "AITextFrame.h"
+#include "IText.h"
 
 // Initialize static member
 ai::int32 ChartItem::sNextChartID = 1;
@@ -942,12 +943,11 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		// Create column chart with placeholder data
 		const int numColumns = 5;
 		AIReal values[numColumns] = {75.0, 45.0, 90.0, 60.0, 85.0};  // Placeholder data (percentages)
-		const char* labels[numColumns] = {"Jan", "Feb", "Mar", "Apr", "May"};
+		const char* monthLabels[numColumns] = {"Jan", "Feb", "Mar", "Apr", "May"};
 		
 		AIReal plotWidth = plotArea.right - plotArea.left;
 		AIReal plotHeight = plotArea.top - plotArea.bottom;
 		AIReal columnWidth = plotWidth / (numColumns * 2);  // Half width for spacing
-		AIReal columnSpacing = columnWidth;
 		
 		// Create columns
 		for (int i = 0; i < numColumns; i++) {
@@ -997,24 +997,29 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			result = sAIPathStyle->SetPathStyle(column, &style);
 			aisdk::check_ai_error(result);
 			
-			// X-axis label - commented out until ATE linking resolved
-		/*
-		AITextOrientation orient = kHorizontalTextOrientation;
-		AIRealPoint anchor;
-		anchor.h = columnLeft + columnWidth/2;
-		anchor.v = plotArea.bottom - labelGap - 10;
-		
-		AIArtHandle xLabel = nullptr;
-		result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &xLabel);
-		if (result == kNoErr && xLabel) {
-			TextRangeRef range = nullptr;
-			result = sAITextFrame->GetATETextRange(xLabel, &range);
-			if (result == kNoErr && range) {
-				// ATE::ITextRange textRange(range);
-				// textRange.InsertAfter(ai::UnicodeString(labels[i]).as_ASUnicode().c_str());
+			// X-axis label
+			AITextOrientation orient = kHorizontalTextOrientation;
+			AIRealPoint anchor;
+			anchor.h = columnLeft + columnWidth/2;
+			anchor.v = plotArea.bottom - labelGap - 10;
+			
+			AIArtHandle xLabel = nullptr;
+			result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &xLabel);
+			if (result == kNoErr && xLabel) {
+				TextRangeRef range = nullptr;
+				result = sAITextFrame->GetATETextRange(xLabel, &range);
+				if (result == kNoErr && range) {
+					ATE::ITextRange textRange(range);
+					
+					// Set the text content
+					textRange.InsertAfter(ai::UnicodeString(monthLabels[i]).as_ASUnicode().c_str());
+					
+					// Set paragraph alignment to center
+					ATE::IParaFeatures paraFeatures;
+					paraFeatures.SetJustification(ATE::kCenterJustify);
+					textRange.SetLocalParaFeatures(paraFeatures);
+				}
 			}
-		}
-		*/
 		
 		// Also add tick mark
 		AIArtHandle tick;
@@ -1117,12 +1122,22 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 	
 	// Add Y-axis labels and tick marks (for 0, 25, 50, 75, 100)
 	for (int i = 0; i <= 4; i++) {
-		// Y-axis label - commented out until ATE linking resolved
-		/*
+		// Y-axis label
 		AITextOrientation orient = kHorizontalTextOrientation;
+		
+		// Get the default font size to adjust vertical position
+		AIReal fontSize = 12.0; // Default font size
+		ATE::ICharFeatures defaultCharFeatures;
+		bool isAssigned = false;
+		AIReal actualFontSize = defaultCharFeatures.GetFontSize(&isAssigned);
+		if (isAssigned) {
+			fontSize = actualFontSize;
+		}
+		
 		AIRealPoint anchor;
-		anchor.h = plotArea.left - labelGap - 30;
-		anchor.v = plotArea.bottom + (i * plotHeight / 4);
+		anchor.h = plotArea.left - labelGap - 5;  // Position closer to axis for right alignment
+		// Adjust vertical position by moving down by 0.35 * fontSize (half of 0.7 cap height estimate)
+		anchor.v = plotArea.bottom + (i * plotHeight / 4) - (fontSize * 0.35);
 		
 		AIArtHandle yLabel = nullptr;
 		result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &yLabel);
@@ -1130,15 +1145,21 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			TextRangeRef range = nullptr;
 			result = sAITextFrame->GetATETextRange(yLabel, &range);
 			if (result == kNoErr && range) {
-				// ATE::ITextRange textRange(range);
+				ATE::ITextRange textRange(range);
+				
+				// Set the text content
 				ai::UnicodeString labelText;
 				ai::NumberFormat numFormat;
 				numFormat.toString(i * 25.0, 0, labelText);
 				labelText = labelText + ai::UnicodeString("%");
-				// textRange.InsertAfter(labelText.as_ASUnicode().c_str());
+				textRange.InsertAfter(labelText.as_ASUnicode().c_str());
+				
+				// Set paragraph alignment to right
+				ATE::IParaFeatures paraFeatures;
+				paraFeatures.SetJustification(ATE::kRightJustify);
+				textRange.SetLocalParaFeatures(paraFeatures);
 			}
 		}
-		*/
 		
 		// Add tick mark
 		AIArtHandle tick;

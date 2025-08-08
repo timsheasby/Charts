@@ -136,4 +136,5 @@ dependencies: \
   ../../illustratorapi/illustrator/AIRealMath.h \
   ../../illustratorapi/illustrator/AITextFrame.h \
   ../../illustratorapi/illustrator/AIATETextUtil.h \
-  ../common/includes/SDKErrors.h
+  ../../illustratorapi/ate/ATETextSuitesImportHelper.h \
+  ../common/includes/SDKErrors.h ../../illustratorapi/ate/IText.h
