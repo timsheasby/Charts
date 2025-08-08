@@ -108,31 +108,6 @@ dependencies: \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/../../illustratorapi/illustrator/AIMask.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/../../illustratorapi/illustrator/AIWorkspace.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/../../illustratorapi/illustrator/VTableSupport.hpp \
-  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartsSuites.cpp \
+  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ATETextSuites.cpp \
   ../common/includes/IllustratorSDK.h \
-  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartsSuites.h \
-  ../../illustratorapi/illustrator/AIAnnotator.h \
-  ../../illustratorapi/illustrator/AIHeaderBegin.h \
-  ../../illustratorapi/illustrator/AIHeaderEnd.h \
-  ../../illustratorapi/illustrator/AIAnnotatorDrawer.h \
-  ../../illustratorapi/illustrator/AIAGMTypes.h \
-  ../../illustratorapi/illustrator/AITypes.h \
-  ../../illustratorapi/illustrator/AIDocumentView.h \
-  ../../illustratorapi/illustrator/AIFont.h \
-  ../../illustratorapi/illustrator/AIPlugin.h \
-  ../../illustratorapi/illustrator/AIRaster.h \
-  ../../illustratorapi/illustrator/AIStringFormatUtils.h \
-  ../../illustratorapi/illustrator/IAIStringFormatUtils.h \
-  ../../illustratorapi/illustrator/IAIUnicodeString.h \
-  ../../illustratorapi/illustrator/IAILocale.h \
-  ../../illustratorapi/illustrator/AIArt.h \
-  ../../illustratorapi/illustrator/AICursorSnap.h \
-  ../../illustratorapi/illustrator/AITool.h \
-  ../../illustratorapi/illustrator/AIPath.h \
-  ../../illustratorapi/illustrator/AIPathStyle.h \
-  ../../illustratorapi/illustrator/AIDictionary.h \
-  ../../illustratorapi/illustrator/AIPluginGroup.h \
-  ../../illustratorapi/illustrator/AIRealMath.h \
-  ../../illustratorapi/illustrator/AITextFrame.h \
-  ../../illustratorapi/illustrator/AIATETextUtil.h \
   ../../illustratorapi/ate/ATESuites.h

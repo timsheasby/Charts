@@ -41,8 +41,13 @@ extern "C"
 	AIATETextUtilSuite*			sAIATETextUtil = NULL;
 }
 
-// Import ATE text suites
-#include "ATETextSuitesExtern.h"
+// Declare ATE suite import
+#include "ATESuites.h"
+namespace ATE {
+	extern TextRangeSuite* sTextRange;
+	extern TextRangesSuite* sTextRanges;
+	extern TextRangesIteratorSuite* sTextRangesIterator;
+}
 
 ImportSuite gImportSuites[] = 
 {
@@ -66,6 +71,9 @@ ImportSuite gImportSuites[] =
 	kAITextFrameSuite, kAITextFrameSuiteVersion, &sAITextFrame,
 	kAIRealMathSuite, kAIRealMathSuiteVersion, &sAIRealMath,
 	kAIATETextUtilSuite, kAIATETextUtilSuiteVersion, &sAIATETextUtil,
+	kTextRangeSuite, kTextRangeSuiteVersion, &ATE::sTextRange,
+	kTextRangesSuite, kTextRangesSuiteVersion, &ATE::sTextRanges,
+	kTextRangesIteratorSuite, kTextRangesIteratorSuiteVersion, &ATE::sTextRangesIterator,
 	nullptr, 0, nullptr
 };
 // End ChartsSuites.cpp
