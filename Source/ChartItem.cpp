@@ -16,6 +16,7 @@
 #include "ChartsSuites.h"
 #include "SDKErrors.h"
 #include "AIPluginGroup.h"
+#include "AITextFrame.h"
 
 // Initialize static member
 ai::int32 ChartItem::sNextChartID = 1;
@@ -891,37 +892,39 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		// Use the group itself as the container for chart content
 		AIArtHandle resultArt = *chartArt;
 		
-		// Create the visual chart content directly in the group
-		// Background rectangle
-		AIArtHandle backgroundRect;
-		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &backgroundRect);
+		// The bounds passed in ARE the plot area
+		// We need to position labels outside this area
+		AIRealRect plotArea = bounds;  // The drawn rectangle IS the plot area
+		AIReal labelGap = 6.0;  // 6 points gap between plot area and labels
+		
+		// Create the plot area background (the drawn rectangle)
+		AIArtHandle plotAreaRect;
+		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &plotAreaRect);
 		aisdk::check_ai_error(result);
 		
-		// Set up the background rectangle path
-		result = sAIPath->SetPathSegmentCount(backgroundRect, 4);
+		result = sAIPath->SetPathSegmentCount(plotAreaRect, 4);
 		aisdk::check_ai_error(result);
 		
 		AIPathSegment segments[4];
-		// Top-left, Top-right, Bottom-right, Bottom-left
-		segments[0].p.h = bounds.left; segments[0].p.v = bounds.top;
-		segments[1].p.h = bounds.right; segments[1].p.v = bounds.top;
-		segments[2].p.h = bounds.right; segments[2].p.v = bounds.bottom;
-		segments[3].p.h = bounds.left; segments[3].p.v = bounds.bottom;
+		segments[0].p.h = plotArea.left; segments[0].p.v = plotArea.top;
+		segments[1].p.h = plotArea.right; segments[1].p.v = plotArea.top;
+		segments[2].p.h = plotArea.right; segments[2].p.v = plotArea.bottom;
+		segments[3].p.h = plotArea.left; segments[3].p.v = plotArea.bottom;
 		
 		for (int i = 0; i < 4; i++) {
 			segments[i].in = segments[i].out = segments[i].p;
 			segments[i].corner = true;
-			result = sAIPath->SetPathSegments(backgroundRect, i, 1, &segments[i]);
+			result = sAIPath->SetPathSegments(plotAreaRect, i, 1, &segments[i]);
 			aisdk::check_ai_error(result);
 		}
 		
-		result = sAIPath->SetPathClosed(backgroundRect, true);
+		result = sAIPath->SetPathClosed(plotAreaRect, true);
 		aisdk::check_ai_error(result);
 		
-		// Set background style - white fill with gray stroke
+		// Plot area style - white fill with gray stroke
 		AIPathStyle style;
 		AIBoolean hasAdvFill = false;
-		result = sAIPathStyle->GetPathStyle(backgroundRect, &style, &hasAdvFill);
+		result = sAIPathStyle->GetPathStyle(plotAreaRect, &style, &hasAdvFill);
 		aisdk::check_ai_error(result);
 		
 		style.fillPaint = true;
@@ -930,51 +933,74 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		
 		style.strokePaint = true;
 		style.stroke.color.kind = kGrayColor;
-		style.stroke.color.c.g.gray = 0.7 * kAIRealOne;  // Light gray
-		style.stroke.width = 1.0;
+		style.stroke.color.c.g.gray = 0.5 * kAIRealOne;  // Medium gray
+		style.stroke.width = 0.5;
 		
-		result = sAIPathStyle->SetPathStyle(backgroundRect, &style);
+		result = sAIPathStyle->SetPathStyle(plotAreaRect, &style);
 		aisdk::check_ai_error(result);
 		
-		// Create a simple blue rectangle for visual feedback (same size as background)
-		AIRealRect barBounds = bounds;
+		// Create column chart with placeholder data
+		const int numColumns = 5;
+		AIReal values[numColumns] = {75.0, 45.0, 90.0, 60.0, 85.0};  // Placeholder data (percentages)
+		const char* labels[numColumns] = {"Jan", "Feb", "Mar", "Apr", "May"};
 		
-		AIArtHandle barRect;
-		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &barRect);
-		aisdk::check_ai_error(result);
+		AIReal plotWidth = plotArea.right - plotArea.left;
+		AIReal plotHeight = plotArea.top - plotArea.bottom;
+		AIReal columnWidth = plotWidth / (numColumns * 2);  // Half width for spacing
+		AIReal columnSpacing = columnWidth;
 		
-		result = sAIPath->SetPathSegmentCount(barRect, 4);
-		aisdk::check_ai_error(result);
-		
-		// Bar rectangle segments - properly set all points
-		segments[0].p.h = barBounds.left; segments[0].p.v = barBounds.top;
-		segments[1].p.h = barBounds.right; segments[1].p.v = barBounds.top;
-		segments[2].p.h = barBounds.right; segments[2].p.v = barBounds.bottom;
-		segments[3].p.h = barBounds.left; segments[3].p.v = barBounds.bottom;
-		
-		for (int i = 0; i < 4; i++) {
-			segments[i].in = segments[i].out = segments[i].p;
-			segments[i].corner = true;
-			result = sAIPath->SetPathSegments(barRect, i, 1, &segments[i]);
+		// Create columns
+		for (int i = 0; i < numColumns; i++) {
+			// Calculate column position and height
+			AIReal columnLeft = plotArea.left + (i * 2 + 0.5) * columnWidth;
+			AIReal columnRight = columnLeft + columnWidth;
+			AIReal columnHeight = (values[i] / 100.0) * plotHeight;
+			AIReal columnTop = plotArea.bottom + columnHeight;
+			
+			// Create column rectangle
+			AIArtHandle column;
+			result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &column);
 			aisdk::check_ai_error(result);
+			
+			result = sAIPath->SetPathSegmentCount(column, 4);
+			aisdk::check_ai_error(result);
+			
+			segments[0].p.h = columnLeft; segments[0].p.v = plotArea.bottom;
+			segments[1].p.h = columnLeft; segments[1].p.v = columnTop;
+			segments[2].p.h = columnRight; segments[2].p.v = columnTop;
+			segments[3].p.h = columnRight; segments[3].p.v = plotArea.bottom;
+			
+			for (int j = 0; j < 4; j++) {
+				segments[j].in = segments[j].out = segments[j].p;
+				segments[j].corner = true;
+				result = sAIPath->SetPathSegments(column, j, 1, &segments[j]);
+				aisdk::check_ai_error(result);
+			}
+			
+			result = sAIPath->SetPathClosed(column, true);
+			aisdk::check_ai_error(result);
+			
+			// Column style - blue gradient (darker at bottom)
+			result = sAIPathStyle->GetPathStyle(column, &style, &hasAdvFill);
+			aisdk::check_ai_error(result);
+			
+			style.fillPaint = true;
+			style.fill.color.kind = kThreeColor;
+			style.fill.color.c.rgb.red = 10000 * (i % 2);  // Alternate colors slightly
+			style.fill.color.c.rgb.green = 30000 + 5000 * i;
+			style.fill.color.c.rgb.blue = 55000 + 2000 * i;
+			style.strokePaint = true;
+			style.stroke.color.kind = kGrayColor;
+			style.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+			style.stroke.width = 0.5;
+			
+			result = sAIPathStyle->SetPathStyle(column, &style);
+			aisdk::check_ai_error(result);
+			
+			// TODO: Add X-axis labels - text frame API needs proper matrix and content setting
 		}
 		
-		result = sAIPath->SetPathClosed(barRect, true);
-		aisdk::check_ai_error(result);
-		
-		// Set bar style - blue fill
-		result = sAIPathStyle->GetPathStyle(barRect, &style, &hasAdvFill);
-		aisdk::check_ai_error(result);
-		
-		style.fillPaint = true;
-		style.fill.color.kind = kThreeColor;
-		style.fill.color.c.rgb.red = 0;
-		style.fill.color.c.rgb.green = 30000;
-		style.fill.color.c.rgb.blue = 65000;
-		style.strokePaint = false;
-		
-		result = sAIPathStyle->SetPathStyle(barRect, &style);
-		aisdk::check_ai_error(result);
+		// TODO: Add Y-axis labels - text frame API needs proper matrix and content setting
 	}
 	catch (ai::Error& ex) {
 		result = ex;

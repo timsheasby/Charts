@@ -27,6 +27,8 @@
 #include "AIPathStyle.h"
 #include "AIDictionary.h"
 #include "AIPluginGroup.h"
+#include "AIRealMath.h"
+#include "AITextFrame.h"
 
 extern  "C" AIUnicodeStringSuite*		sAIUnicodeString;
 extern  "C" SPBlocksSuite*				sSPBlocks;
@@ -45,6 +47,8 @@ extern	"C" AIPathSuite*					sAIPath;
 extern	"C" AIPathStyleSuite*			sAIPathStyle;
 extern	"C" AIDictionarySuite*			sAIDictionary;
 extern	"C" AIPluginGroupSuite*			sAIPluginGroup;
+extern	"C" AITextFrameSuite*			sAITextFrame;
+extern	"C" AIRealMathSuite*			sAIRealMath;
 
 #endif // __CHARTSSUITES_H__
 
