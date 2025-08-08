@@ -936,13 +936,8 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		result = sAIPathStyle->SetPathStyle(backgroundRect, &style);
 		aisdk::check_ai_error(result);
 		
-		// Create a simple bar for visual feedback
-		AIReal margin = 20.0;
-		AIRealRect barBounds;
-		barBounds.left = bounds.left + margin;
-		barBounds.right = bounds.right - margin;
-		barBounds.top = bounds.top + margin;
-		barBounds.bottom = bounds.bottom - margin;
+		// Create a simple blue rectangle for visual feedback (same size as background)
+		AIRealRect barBounds = bounds;
 		
 		AIArtHandle barRect;
 		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &barRect);
@@ -951,13 +946,15 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		result = sAIPath->SetPathSegmentCount(barRect, 4);
 		aisdk::check_ai_error(result);
 		
-		// Bar rectangle segments
+		// Bar rectangle segments - properly set all points
 		segments[0].p.h = barBounds.left; segments[0].p.v = barBounds.top;
 		segments[1].p.h = barBounds.right; segments[1].p.v = barBounds.top;
 		segments[2].p.h = barBounds.right; segments[2].p.v = barBounds.bottom;
 		segments[3].p.h = barBounds.left; segments[3].p.v = barBounds.bottom;
 		
 		for (int i = 0; i < 4; i++) {
+			segments[i].in = segments[i].out = segments[i].p;
+			segments[i].corner = true;
 			result = sAIPath->SetPathSegments(barRect, i, 1, &segments[i]);
 			aisdk::check_ai_error(result);
 		}
