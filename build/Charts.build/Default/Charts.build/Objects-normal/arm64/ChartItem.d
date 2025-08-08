@@ -108,14 +108,13 @@ dependencies: \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/../../illustratorapi/illustrator/AIMask.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/../../illustratorapi/illustrator/AIWorkspace.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/../../illustratorapi/illustrator/VTableSupport.hpp \
-  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/Charts.cpp \
+  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartItem.cpp \
   ../common/includes/IllustratorSDK.h \
-  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/Charts.h \
+  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartItem.h \
+  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartsSuites.h \
   ../../illustratorapi/illustrator/AIAnnotator.h \
   ../../illustratorapi/illustrator/AIHeaderBegin.h \
   ../../illustratorapi/illustrator/AIHeaderEnd.h \
-  ../common/includes/SDKErrors.h \
-  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartsSuites.h \
   ../../illustratorapi/illustrator/AIAnnotatorDrawer.h \
   ../../illustratorapi/illustrator/AIAGMTypes.h \
   ../../illustratorapi/illustrator/AITypes.h \
@@ -131,4 +130,7 @@ dependencies: \
   ../../illustratorapi/illustrator/AICursorSnap.h \
   ../../illustratorapi/illustrator/AITool.h \
   ../../illustratorapi/illustrator/AIPath.h \
-  ../../illustratorapi/illustrator/AIPathStyle.h
+  ../../illustratorapi/illustrator/AIPathStyle.h \
+  ../../illustratorapi/illustrator/AIDictionary.h \
+  ../../illustratorapi/illustrator/AIPluginGroup.h \
+  ../common/includes/SDKErrors.h

@@ -34,6 +34,8 @@ extern "C"
 	AICursorSnapSuite*			sAICursorSnap = NULL;
 	AIPathSuite*				sAIPath = NULL;
 	AIPathStyleSuite*			sAIPathStyle = NULL;
+	AIDictionarySuite*			sAIDictionary = NULL;
+	AIPluginGroupSuite*			sAIPluginGroup = NULL;
 }
 
 ImportSuite gImportSuites[] = 
@@ -53,6 +55,8 @@ ImportSuite gImportSuites[] =
 	kAICursorSnapSuite, kAICursorSnapSuiteVersion, &sAICursorSnap,
 	kAIPathSuite, kAIPathSuiteVersion, &sAIPath,
 	kAIPathStyleSuite, kAIPathStyleSuiteVersion, &sAIPathStyle,
+	kAIDictionarySuite, kAIDictionarySuiteVersion, &sAIDictionary,
+	kAIPluginGroupSuite, kAIPluginGroupSuiteVersion, &sAIPluginGroup,
 	nullptr, 0, nullptr
 };
 // End ChartsSuites.cpp

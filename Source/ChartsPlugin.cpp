@@ -15,6 +15,7 @@
 
 #include "IllustratorSDK.h"
 #include "ChartsPlugin.h"
+#include "ChartItem.h"
 
 ChartsPlugin *gPlugin = NULL;
 
@@ -45,7 +46,8 @@ ChartsPlugin::ChartsPlugin(SPPluginRef pluginRef) :
 	fAnnotatorHandle(NULL), fNotifySelectionChanged(NULL),
 	fAnnotator(NULL),
     fResourceManagerHandle(NULL),
-	fShutdownApplicationNotifier(NULL)
+	fShutdownApplicationNotifier(NULL),
+	fChartPluginGroupHandle(NULL)
 {	
 	strncpy(fPluginName, kChartsPluginName, kMaxStringLength);
 }
@@ -80,6 +82,30 @@ ASErr ChartsPlugin::StartupPlugin(SPInterfaceMessage* message)
 		result = this->AddNotifier(message);
 		aisdk::check_ai_error(result);
 
+		// Register plugin group for custom chart art objects (following LiveDropShadow pattern)
+		AIAddPluginGroupData pluginGroupData;
+		pluginGroupData.major = 1;
+		pluginGroupData.minor = 0;
+		char description[] = "Chart Plugin Group";
+		pluginGroupData.desc = description;
+		char name[] = "ChartPluginGroup";
+
+		result = sAIPluginGroup->AddAIPluginGroup(
+			message->d.self,
+			name,
+			&pluginGroupData,
+			kPluginGroupWantsAutoTransformOption,
+			&fChartPluginGroupHandle
+		);
+		aisdk::check_ai_error(result);
+
+		// Set the default name that appears in the Layers panel
+		result = sAIPluginGroup->SetAIPluginGroupDefaultName(
+			fChartPluginGroupHandle, 
+			"Chart"
+		);
+		aisdk::check_ai_error(result);
+
 	}
 	catch (ai::Error& ex) {
 		result = ex;
@@ -100,6 +126,8 @@ ASErr ChartsPlugin::PostStartupPlugin()
 		if (fAnnotator == NULL) {
 			fAnnotator = new Charts();
 			SDK_ASSERT(fAnnotator);
+			// Set the plugin group handle so Charts can create custom art objects
+			fAnnotator->SetPluginGroupHandle(fChartPluginGroupHandle);
 		}
         result = sAIUser->CreateCursorResourceMgr(fPluginRef,&fResourceManagerHandle);
         aisdk::check_ai_error(result);
@@ -148,6 +176,16 @@ ASErr ChartsPlugin::Message(char* caller, char* selector, void* message)
 				}
 				else if (strcmp(selector, kSelectorAIInvalAnnotation) == 0) {
 					result = this->InvalAnnotation((AIAnnotatorMessage*)message);
+					aisdk::check_ai_error(result);
+				}
+			}
+			else if (strcmp(caller, kCallerAIPluginGroup) == 0) {
+				if (strcmp(selector, kSelectorAIUpdateArt) == 0) {
+					result = this->PluginGroupUpdate((AIPluginGroupMessage*)message);
+					aisdk::check_ai_error(result);
+				}
+				else if (strcmp(selector, kSelectorAINotifyEdits) == 0) {
+					result = this->PluginGroupNotify((AIPluginGroupMessage*)message);
 					aisdk::check_ai_error(result);
 				}
 			}
@@ -488,6 +526,79 @@ ASErr ChartsPlugin::InvalAnnotation(AIAnnotatorMessage* message)
 	}
 	catch(...)
 	{
+		result = kCantHappenErr;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr ChartsPlugin::PluginGroupUpdate(AIPluginGroupMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		AIArtHandle pluginArt = message->art;
+		
+		// Get edit and result groups
+		AIArtHandle editArt = NULL;
+		AIArtHandle resultArt = NULL;
+		result = sAIPluginGroup->GetPluginArtEditArt(pluginArt, &editArt);
+		aisdk::check_ai_error(result);
+		result = sAIPluginGroup->GetPluginArtResultArt(pluginArt, &resultArt);
+		aisdk::check_ai_error(result);
+		
+		// Clear all children from the result group
+		AIArtHandle child = nullptr;
+		result = sAIArt->GetArtFirstChild(resultArt, &child);
+		aisdk::check_ai_error(result);
+
+		while (child != nullptr) {
+			AIArtHandle nextChild = nullptr;
+			result = sAIArt->GetArtSibling(child, &nextChild);
+			aisdk::check_ai_error(result);
+			
+			result = sAIArt->DisposeArt(child);
+			aisdk::check_ai_error(result);
+			
+			child = nextChild;
+		}
+		
+		// Load custom chart data
+		ChartItem chartData;
+		size_t dataSize = sizeof(ChartItem);
+		result = sAIPluginGroup->GetPluginArtDataRange(pluginArt, &chartData, 0, dataSize);
+		if (result == kNoErr) {
+			// Set the result group as the parent for chart rendering
+			chartData.SetChartGroup(resultArt);
+			
+			// Recreate the chart content in the result group
+			result = chartData.CreateChartArt();
+			aisdk::check_ai_error(result);
+		}
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	catch (...) {
+		result = kCantHappenErr;
+	}
+	return result;
+}
+
+/*
+*/
+ASErr ChartsPlugin::PluginGroupNotify(AIPluginGroupMessage* message)
+{
+	ASErr result = kNoErr;
+	try {
+		// Handle notification of edits to the plugin group
+		// For now, we'll just update the art
+		result = PluginGroupUpdate(message);
+	}
+	catch (ai::Error& ex) {
+		result = ex;
+	}
+	catch (...) {
 		result = kCantHappenErr;
 	}
 	return result;

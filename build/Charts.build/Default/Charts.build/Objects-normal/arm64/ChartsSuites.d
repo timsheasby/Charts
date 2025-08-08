@@ -129,4 +129,6 @@ dependencies: \
   ../../illustratorapi/illustrator/AICursorSnap.h \
   ../../illustratorapi/illustrator/AITool.h \
   ../../illustratorapi/illustrator/AIPath.h \
-  ../../illustratorapi/illustrator/AIPathStyle.h
+  ../../illustratorapi/illustrator/AIPathStyle.h \
+  ../../illustratorapi/illustrator/AIDictionary.h \
+  ../../illustratorapi/illustrator/AIPluginGroup.h

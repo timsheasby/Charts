@@ -133,5 +133,8 @@ dependencies: \
   ../../illustratorapi/illustrator/AITool.h \
   ../../illustratorapi/illustrator/AIPath.h \
   ../../illustratorapi/illustrator/AIPathStyle.h \
+  ../../illustratorapi/illustrator/AIDictionary.h \
+  ../../illustratorapi/illustrator/AIPluginGroup.h \
   /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/Charts.h \
-  ../common/includes/SDKErrors.h
+  ../common/includes/SDKErrors.h \
+  /Users/timothysheasby/Documents/Illustrator\ Plugins/Charts/Adobe\ Illustrator\ 2025\ SDK/samplecode/Charts/Source/ChartItem.h

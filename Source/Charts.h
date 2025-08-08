@@ -19,6 +19,9 @@
 #include "AIAnnotator.h"
 #include "SDKErrors.h"
 #include "ChartsSuites.h"
+#include "ChartItem.h"
+#include <vector>
+#include <memory>
 
 /** This class provides a very basic demonstration of the use of the 
 	AIAnnotatorSuite and AIAnnotatorDrawerSuite to add your own annotations 
@@ -78,6 +81,18 @@ private:
 	/** Snapped point from smart guides
 	*/
 	AIRealPoint fSnappedPoint;
+	
+	/** Collection of chart items created in the document
+	*/
+	std::vector<std::unique_ptr<ChartItem>> fChartItems;
+	
+	/** Current chart type being created
+	*/
+	ChartType fCurrentChartType;
+	
+	/** Handle to the chart plugin group for creating custom art objects
+	*/
+	AIPluginGroupHandle fPluginGroupHandle;
 
 public:
 
@@ -201,6 +216,11 @@ public:
 		@return kNoErr on success, other ASErr otherwise.
 	*/
 	ASErr GetPointString(const AIRealPoint& point, ai::UnicodeString& pointStr);
+	
+	/**	Sets the plugin group handle for creating custom chart art objects.
+		@param handle IN the plugin group handle.
+	*/
+	void SetPluginGroupHandle(AIPluginGroupHandle handle);
 };
 
 #endif // __CHARTS_H__

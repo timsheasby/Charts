@@ -25,6 +25,8 @@
 #include "AICursorSnap.h"
 #include "AIPath.h"
 #include "AIPathStyle.h"
+#include "AIDictionary.h"
+#include "AIPluginGroup.h"
 
 extern  "C" AIUnicodeStringSuite*		sAIUnicodeString;
 extern  "C" SPBlocksSuite*				sSPBlocks;
@@ -41,6 +43,8 @@ extern	"C" AIStringFormatUtilsSuite*	sAIStringFormatUtils;
 extern	"C" AICursorSnapSuite*			sAICursorSnap;
 extern	"C" AIPathSuite*					sAIPath;
 extern	"C" AIPathStyleSuite*			sAIPathStyle;
+extern	"C" AIDictionarySuite*			sAIDictionary;
+extern	"C" AIPluginGroupSuite*			sAIPluginGroup;
 
 #endif // __CHARTSSUITES_H__
 

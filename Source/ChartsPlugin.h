@@ -72,6 +72,10 @@ private:
      */
     AIResourceManagerHandle fResourceManagerHandle;
 
+	/** Handle for the chart plugin group.
+	*/
+	AIPluginGroupHandle	fChartPluginGroupHandle;
+
 public:
 	/**	Constructor.
 		@param pluginRef IN reference to this plugin.
@@ -206,6 +210,18 @@ protected:
 		@return kNoErr on success, other ASErr otherwise.
 	*/
 	ASErr InvalAnnotation(AIAnnotatorMessage* message);
+
+	/**	Handles plugin group update messages.
+		@param message IN message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr PluginGroupUpdate(AIPluginGroupMessage* message);
+
+	/**	Handles plugin group notify messages.
+		@param message IN message data.
+		@return kNoErr on success, other ASErr otherwise.
+	*/
+	ASErr PluginGroupNotify(AIPluginGroupMessage* message);
 };
 
 #endif // __CHARTSPLUGIN_H__

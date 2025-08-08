@@ -23,6 +23,7 @@
 		2A9235DD0E2FB5EC001EA6E3 /* IAIUnicodeString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2A9235DA0E2FB5EC001EA6E3 /* IAIUnicodeString.cpp */; };
 		2AE03E3E0CF6F76A00C6B585 /* IllustratorSDK.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE03E3D0CF6F76A00C6B585 /* IllustratorSDK.cpp */; };
 		2AE97DE10BBC21630041212F /* Charts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE97DE00BBC21630041212F /* Charts.cpp */; };
+		2AE97DE20BBC21640041212F /* ChartItem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AE97DE30BBC21640041212F /* ChartItem.cpp */; };
 		A1FEA4EA25E4CA9400BB976A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1FEA4E925E4CA9400BB976A /* Cocoa.framework */; };
 		FAC6F1E517BE2EEB00B50329 /* Charts.r in Rez */ = {isa = PBXBuildFile; fileRef = FAC6F1E417BE2EEB00B50329 /* Charts.r */; };
 		FAC6F1E717BE2EF300B50329 /* Charts2x.r in Rez */ = {isa = PBXBuildFile; fileRef = FAC6F1E617BE2EF300B50329 /* Charts2x.r */; };
@@ -45,6 +46,8 @@
 		2A9235DA0E2FB5EC001EA6E3 /* IAIUnicodeString.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = IAIUnicodeString.cpp; path = ../../illustratorapi/illustrator/IAIUnicodeString.cpp; sourceTree = SOURCE_ROOT; };
 		2AE03E3D0CF6F76A00C6B585 /* IllustratorSDK.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = IllustratorSDK.cpp; path = ../common/source/IllustratorSDK.cpp; sourceTree = SOURCE_ROOT; };
 		2AE97DE00BBC21630041212F /* Charts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Charts.cpp; path = Source/Charts.cpp; sourceTree = "<group>"; };
+		2AE97DE30BBC21640041212F /* ChartItem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ChartItem.cpp; path = Source/ChartItem.cpp; sourceTree = "<group>"; };
+		2AE97DE40BBC21640041212F /* ChartItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ChartItem.h; path = Source/ChartItem.h; sourceTree = "<group>"; };
 		6E0C51960A8B6CC600C9A14A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../common/mac/Info.plist; sourceTree = SOURCE_ROOT; };
 		6EE2BA530A40BB2600CC7CE2 /* Charts.aip */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Charts.aip; sourceTree = BUILT_PRODUCTS_DIR; };
 		A190BBD225E3F5FB0001DF18 /* AIPluginCommon.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = AIPluginCommon.xcconfig; path = ../common/mac/AIPluginCommon.xcconfig; sourceTree = "<group>"; };
@@ -94,6 +97,8 @@
 				2A9235C40E2FB5A2001EA6E3 /* ChartsSuites.cpp */,
 				2A9235C50E2FB5A2001EA6E3 /* ChartsSuites.h */,
 				2AE97DE00BBC21630041212F /* Charts.cpp */,
+				2AE97DE30BBC21640041212F /* ChartItem.cpp */,
+				2AE97DE40BBC21640041212F /* ChartItem.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -268,6 +273,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2AE97DE10BBC21630041212F /* Charts.cpp in Sources */,
+				2AE97DE20BBC21640041212F /* ChartItem.cpp in Sources */,
 				2AE03E3E0CF6F76A00C6B585 /* IllustratorSDK.cpp in Sources */,
 				2A9235C80E2FB5A2001EA6E3 /* ChartsPlugin.cpp in Sources */,
 				2A9235CA0E2FB5A2001EA6E3 /* ChartsSuites.cpp in Sources */,

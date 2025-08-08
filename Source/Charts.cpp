@@ -28,13 +28,13 @@ const AIRGBColor BORDER_COLOR = {0, 0, 0};
 */
 const AIRGBColor PREVIEW_COLOR = {0, 30000, 65000};
 
-/** White background for text
+/** Light gray background for text (similar to standard Illustrator tools)
 */
-const AIRGBColor TEXT_BACKGROUND = {65535, 65535, 65535};
+const AIRGBColor TEXT_BACKGROUND = {58000, 58000, 58000};
 
 /*
 */
-Charts::Charts(): fArtLastHit(NULL), fArtUpdate(false), fCursorUpdate(false), fIsDrawingRect(false)
+Charts::Charts(): fArtLastHit(NULL), fArtUpdate(false), fCursorUpdate(false), fIsDrawingRect(false), fCurrentChartType(kChartTypeBar), fPluginGroupHandle(NULL)
 {
 	this->Init(fCursorViewPoint);
 	this->Init(fCursorArtPoint);
@@ -192,12 +192,23 @@ ASErr Charts::MouseUp(AIToolMessage* message)
 {
 	ASErr result = kNoErr;
 	try {
-		if (fIsDrawingRect) {
-			// Get current view
-			AIDocumentViewHandle vh = NULL;
-			result = sAIDocumentView->GetNthDocumentView(0, &vh);
-			aisdk::check_ai_error(result);
-			
+		// FIRST: Stop drawing immediately to prevent cursor sticking
+		bool wasDrawing = fIsDrawingRect;
+		fIsDrawingRect = false;
+		
+		// Get current view
+		AIDocumentViewHandle vh = NULL;
+		result = sAIDocumentView->GetNthDocumentView(0, &vh);
+		aisdk::check_ai_error(result);
+		
+		// Invalidate to clear preview immediately
+		AIRealRect viewBounds = {0, 0, 0, 0};
+		result = sAIDocumentView->GetDocumentViewBounds(vh, &viewBounds);
+		aisdk::check_ai_error(result);
+		result = this->InvalidateRect(viewBounds);
+		aisdk::check_ai_error(result);
+		
+		if (wasDrawing) {
 			// Use smart guides for final position if available
 			if(sAICursorSnap && sAICursorSnap->UseSmartGuides(vh)) {
 				AIRealPoint snappedEnd;
@@ -211,93 +222,59 @@ ASErr Charts::MouseUp(AIToolMessage* message)
 				fRectEndPoint = message->cursor;
 			}
 			
-			// Create the actual rectangle art
+			// Create the chart if the rectangle has some size
 			if (fRectStartPoint.h != fRectEndPoint.h || fRectStartPoint.v != fRectEndPoint.v) {
-				// Create a new path art
-				AIArtHandle rectArt = NULL;
-				short paintOrder = kPlaceAboveAll;
-				result = sAIArt->NewArt(kPathArt, paintOrder, NULL, &rectArt);
-				aisdk::check_ai_error(result);
+				// Calculate chart bounds
+				AIRealRect chartBounds;
+				chartBounds.left = min(fRectStartPoint.h, fRectEndPoint.h);
+				chartBounds.right = max(fRectStartPoint.h, fRectEndPoint.h);
+				chartBounds.top = max(fRectStartPoint.v, fRectEndPoint.v);
+				chartBounds.bottom = min(fRectStartPoint.v, fRectEndPoint.v);
 				
-				// Set up the rectangle path
-				result = sAIPath->SetPathClosed(rectArt, true);
-				aisdk::check_ai_error(result);
-				
-				// Calculate rectangle corners
-				AIReal left = min(fRectStartPoint.h, fRectEndPoint.h);
-				AIReal right = max(fRectStartPoint.h, fRectEndPoint.h);
-				AIReal top = max(fRectStartPoint.v, fRectEndPoint.v);
-				AIReal bottom = min(fRectStartPoint.v, fRectEndPoint.v);
-				
-				// Add four corner points
-				AIPathSegment segments[4];
-				
-				// Top-left corner
-				segments[0].p.h = left;
-				segments[0].p.v = top;
-				segments[0].in = segments[0].out = segments[0].p;
-				segments[0].corner = true;
-				
-				// Top-right corner
-				segments[1].p.h = right;
-				segments[1].p.v = top;
-				segments[1].in = segments[1].out = segments[1].p;
-				segments[1].corner = true;
-				
-				// Bottom-right corner
-				segments[2].p.h = right;
-				segments[2].p.v = bottom;
-				segments[2].in = segments[2].out = segments[2].p;
-				segments[2].corner = true;
-				
-				// Bottom-left corner
-				segments[3].p.h = left;
-				segments[3].p.v = bottom;
-				segments[3].in = segments[3].out = segments[3].p;
-				segments[3].corner = true;
-				
-				// Set the path segments
-				result = sAIPath->SetPathSegmentCount(rectArt, 4);
-				aisdk::check_ai_error(result);
-				
-				for (int i = 0; i < 4; i++) {
-					result = sAIPath->SetPathSegments(rectArt, i, 1, &segments[i]);
+				// Create a Chart object (custom group with chart properties)
+				AIArtHandle chartArt = nullptr;
+				result = ChartItem::CreatePluginArt(chartBounds, fCurrentChartType, nullptr, &chartArt);
+				if (result == kNoErr && chartArt) {
+					// Select the new chart
+					result = sAIArt->SetArtUserAttr(chartArt, kArtSelected, kArtSelected);
+					aisdk::check_ai_error(result);
+				} else {
+					// Chart creation failed, fall back to simple rectangle
+					AIArtHandle rectangleArt;
+					result = sAIArt->NewArt(kPathArt, kPlaceAboveAll, nullptr, &rectangleArt);
+					aisdk::check_ai_error(result);
+					
+					// Create simple rectangle
+					result = sAIPath->SetPathSegmentCount(rectangleArt, 4);
+					aisdk::check_ai_error(result);
+					
+					AIPathSegment segments[4];
+					segments[0].p.h = chartBounds.left; segments[0].p.v = chartBounds.top;
+					segments[1].p.h = chartBounds.right; segments[1].p.v = chartBounds.top;
+					segments[2].p.h = chartBounds.right; segments[2].p.v = chartBounds.bottom;
+					segments[3].p.h = chartBounds.left; segments[3].p.v = chartBounds.bottom;
+					
+					for (int i = 0; i < 4; i++) {
+						segments[i].in = segments[i].out = segments[i].p;
+						segments[i].corner = true;
+						result = sAIPath->SetPathSegments(rectangleArt, i, 1, &segments[i]);
+						aisdk::check_ai_error(result);
+					}
+					
+					result = sAIPath->SetPathClosed(rectangleArt, true);
+					aisdk::check_ai_error(result);
+					
+					// Select the rectangle
+					result = sAIArt->SetArtUserAttr(rectangleArt, kArtSelected, kArtSelected);
 					aisdk::check_ai_error(result);
 				}
-				
-				// Apply default style (or custom style)
-				AIPathStyle style;
-				AIBoolean hasAdvFill = false;
-				result = sAIPathStyle->GetPathStyle(rectArt, &style, &hasAdvFill);
-				aisdk::check_ai_error(result);
-				
-				// Set stroke to black and fill to none
-				style.stroke.color.kind = kGrayColor;
-				style.stroke.color.c.g.gray = kAIRealOne;  // Black
-				style.strokePaint = true;
-				style.fillPaint = false;
-				
-				result = sAIPathStyle->SetPathStyle(rectArt, &style);
-				aisdk::check_ai_error(result);
-				
-				// Select the new rectangle
-				result = sAIArt->SetArtUserAttr(rectArt, kArtSelected, kArtSelected);
-				aisdk::check_ai_error(result);
 			}
-			
-			// Stop drawing
-			fIsDrawingRect = false;
-			
-			// Invalidate to clear preview
-			AIRealRect viewBounds = {0, 0, 0, 0};
-			result = sAIDocumentView->GetDocumentViewBounds(vh, &viewBounds);
-			aisdk::check_ai_error(result);
-			result = this->InvalidateRect(viewBounds);
-			aisdk::check_ai_error(result);
 		}
 	}
 	catch (ai::Error& ex) {
 		result = ex;
+		// Ensure drawing state is reset even on error
+		fIsDrawingRect = false;
 	}
 	return result;
 }
@@ -435,21 +412,15 @@ ASErr Charts::DrawRectanglePreview(AIAnnotatorMessage* message)
 			result = sAIAnnotatorDrawer->GetTextBounds(message->drawer, dimStr, &textPos, false, textBounds, false);
 			aisdk::check_ai_error(result);
 			
-			// Expand bounds for padding
-			textBounds.left -= 4;
-			textBounds.right += 4;
-			textBounds.top -= 2;
-			textBounds.bottom += 2;
+			// Expand bounds for padding (more at top)
+			textBounds.left -= 6;
+			textBounds.right += 6;
+			textBounds.top -= 5;
+			textBounds.bottom += 3;
 			
-			// Draw white background
+			// Draw light gray background
 			sAIAnnotatorDrawer->SetColor(message->drawer, TEXT_BACKGROUND);
 			result = sAIAnnotatorDrawer->DrawRect(message->drawer, textBounds, true);
-			aisdk::check_ai_error(result);
-			
-			// Draw border
-			sAIAnnotatorDrawer->SetColor(message->drawer, BORDER_COLOR);
-			sAIAnnotatorDrawer->SetLineWidth(message->drawer, 0.5);
-			result = sAIAnnotatorDrawer->DrawRect(message->drawer, textBounds, false);
 			aisdk::check_ai_error(result);
 			
 			// Draw text
@@ -696,4 +667,11 @@ ASErr Charts::GetPointString(const AIRealPoint& point, ai::UnicodeString& pointS
 	}
 
 	return result;
+}
+
+/*
+*/
+void Charts::SetPluginGroupHandle(AIPluginGroupHandle handle)
+{
+	fPluginGroupHandle = handle;
 }
