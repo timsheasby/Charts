@@ -41,6 +41,9 @@ extern "C"
 	AIATETextUtilSuite*			sAIATETextUtil = NULL;
 }
 
+// Import ATE text suites
+#include "ATETextSuitesExtern.h"
+
 ImportSuite gImportSuites[] = 
 {
 	kAIUnicodeStringSuite, kAIUnicodeStringSuiteVersion, &sAIUnicodeString,

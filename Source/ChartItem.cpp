@@ -17,6 +17,8 @@
 #include "SDKErrors.h"
 #include "AIPluginGroup.h"
 #include "AITextFrame.h"
+#include "IText.h"
+#include "ATETextSuitesImportHelper.h"
 
 // Initialize static member
 ai::int32 ChartItem::sNextChartID = 1;
@@ -997,7 +999,24 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			result = sAIPathStyle->SetPathStyle(column, &style);
 			aisdk::check_ai_error(result);
 			
-			// Add tick mark for X-axis label position
+			// Add X-axis label
+		AITextOrientation orient = kHorizontalTextOrientation;
+		AIRealPoint anchor;
+		anchor.h = columnLeft + columnWidth/2;
+		anchor.v = plotArea.bottom - labelGap - 10;
+		
+		AIArtHandle xLabel = nullptr;
+		result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &xLabel);
+		if (result == kNoErr && xLabel) {
+			TextRangeRef range = nullptr;
+			result = sAITextFrame->GetATETextRange(xLabel, &range);
+			if (result == kNoErr && range) {
+				ATE::ITextRange textRange(range);
+				textRange.InsertAfter(ai::UnicodeString(labels[i]).as_ASUnicode().c_str());
+			}
+		}
+		
+		// Also add tick mark
 		AIArtHandle tick;
 		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &tick);
 		if (result == kNoErr) {
@@ -1009,7 +1028,7 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			tickSegs[0].corner = true;
 			
 			tickSegs[1].p.h = columnLeft + columnWidth/2;
-			tickSegs[1].p.v = plotArea.bottom - 5;  // 5 point tick
+			tickSegs[1].p.v = plotArea.bottom - 5;
 			tickSegs[1].in = tickSegs[1].out = tickSegs[1].p;
 			tickSegs[1].corner = true;
 			
@@ -1018,7 +1037,6 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 			}
 			result = sAIPath->SetPathClosed(tick, false);
 			
-			// Style the tick mark
 			AIPathStyle tickStyle;
 			AIBoolean hasAdvFill = false;
 			sAIPathStyle->GetPathStyle(tick, &tickStyle, &hasAdvFill);
@@ -1097,8 +1115,30 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		sAIPathStyle->SetPathStyle(xAxis, &axisStyle);
 	}
 	
-	// Add Y-axis tick marks (for 0, 25, 50, 75, 100)
+	// Add Y-axis labels and tick marks (for 0, 25, 50, 75, 100)
 	for (int i = 0; i <= 4; i++) {
+		// Add Y-axis label
+		AITextOrientation orient = kHorizontalTextOrientation;
+		AIRealPoint anchor;
+		anchor.h = plotArea.left - labelGap - 30;
+		anchor.v = plotArea.bottom + (i * plotHeight / 4);
+		
+		AIArtHandle yLabel = nullptr;
+		result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &yLabel);
+		if (result == kNoErr && yLabel) {
+			TextRangeRef range = nullptr;
+			result = sAITextFrame->GetATETextRange(yLabel, &range);
+			if (result == kNoErr && range) {
+				ATE::ITextRange textRange(range);
+				ai::UnicodeString labelText;
+				ai::NumberFormat numFormat;
+				numFormat.toString(i * 25.0, 0, labelText);
+				labelText = labelText + ai::UnicodeString("%");
+				textRange.InsertAfter(labelText.as_ASUnicode().c_str());
+			}
+		}
+		
+		// Add tick mark
 		AIArtHandle tick;
 		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &tick);
 		if (result == kNoErr) {
