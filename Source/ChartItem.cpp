@@ -898,9 +898,67 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		AIRealRect plotArea = bounds;  // The drawn rectangle IS the plot area
 		AIReal labelGap = 6.0;  // 6 points gap between plot area and labels
 		
-		// Create the plot area background (the drawn rectangle)
+		// Create named groups for chart components (in z-order from back to front)
+		
+		// 1. Background group
+		AIArtHandle backgroundGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &backgroundGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(backgroundGroup, ai::UnicodeString("Background"));
+		
+		// 2. Grid groups
+		AIArtHandle xGridGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &xGridGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(xGridGroup, ai::UnicodeString("X Grid"));
+		
+		AIArtHandle yGridGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &yGridGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(yGridGroup, ai::UnicodeString("Y Grid"));
+		
+		// 3. Column groups (we'll create multiple as needed)
+		AIArtHandle columnsGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &columnsGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(columnsGroup, ai::UnicodeString("Columns"));
+		
+		// 4. Axis groups
+		AIArtHandle xAxisGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &xAxisGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(xAxisGroup, ai::UnicodeString("X Axis"));
+		
+		AIArtHandle yAxisGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &yAxisGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(yAxisGroup, ai::UnicodeString("Y Axis"));
+		
+		// 5. Tick groups
+		AIArtHandle xTicksGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &xTicksGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(xTicksGroup, ai::UnicodeString("X Ticks"));
+		
+		AIArtHandle yTicksGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &yTicksGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(yTicksGroup, ai::UnicodeString("Y Ticks"));
+		
+		// 6. Label groups
+		AIArtHandle xLabelsGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &xLabelsGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(xLabelsGroup, ai::UnicodeString("X Axis Labels"));
+		
+		AIArtHandle yLabelsGroup;
+		result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, resultArt, &yLabelsGroup);
+		aisdk::check_ai_error(result);
+		result = sAIArt->SetArtName(yLabelsGroup, ai::UnicodeString("Y Axis Labels"));
+		
+		// Create the plot area background in the background group
 		AIArtHandle plotAreaRect;
-		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &plotAreaRect);
+		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, backgroundGroup, &plotAreaRect);
 		aisdk::check_ai_error(result);
 		
 		result = sAIPath->SetPathSegmentCount(plotAreaRect, 4);
@@ -940,71 +998,193 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		result = sAIPathStyle->SetPathStyle(plotAreaRect, &style);
 		aisdk::check_ai_error(result);
 		
-		// Create column chart with placeholder data
-		const int numColumns = 5;
-		AIReal values[numColumns] = {75.0, 45.0, 90.0, 60.0, 85.0};  // Placeholder data (percentages)
-		const char* monthLabels[numColumns] = {"Jan", "Feb", "Mar", "Apr", "May"};
-		
+		// Calculate plot dimensions
 		AIReal plotWidth = plotArea.right - plotArea.left;
 		AIReal plotHeight = plotArea.top - plotArea.bottom;
-		AIReal columnWidth = plotWidth / (numColumns * 2);  // Half width for spacing
 		
-		// Create columns
-		for (int i = 0; i < numColumns; i++) {
-			// Calculate column position and height
-			AIReal columnLeft = plotArea.left + (i * 2 + 0.5) * columnWidth;
-			AIReal columnRight = columnLeft + columnWidth;
-			AIReal columnHeight = (values[i] / 100.0) * plotHeight;
-			AIReal columnTop = plotArea.bottom + columnHeight;
-			
-			// Create column rectangle
-			AIArtHandle column;
-			result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &column);
+		// Create horizontal grid lines (Y grid)
+		for (int i = 1; i <= 4; i++) {  // Skip 0 and 100 as they're on the border
+			AIArtHandle gridLine;
+			result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, yGridGroup, &gridLine);
+			if (result == kNoErr) {
+				result = sAIPath->SetPathSegmentCount(gridLine, 2);
+				AIPathSegment gridSegs[2];
+				gridSegs[0].p.h = plotArea.left;
+				gridSegs[0].p.v = plotArea.bottom + (i * plotHeight / 4);
+				gridSegs[0].in = gridSegs[0].out = gridSegs[0].p;
+				gridSegs[0].corner = true;
+				
+				gridSegs[1].p.h = plotArea.right;
+				gridSegs[1].p.v = plotArea.bottom + (i * plotHeight / 4);
+				gridSegs[1].in = gridSegs[1].out = gridSegs[1].p;
+				gridSegs[1].corner = true;
+				
+				for (int j = 0; j < 2; j++) {
+					result = sAIPath->SetPathSegments(gridLine, j, 1, &gridSegs[j]);
+				}
+				result = sAIPath->SetPathClosed(gridLine, false);
+				
+				// Style the grid line
+				AIPathStyle gridStyle;
+				AIBoolean hasAdvFill = false;
+				sAIPathStyle->GetPathStyle(gridLine, &gridStyle, &hasAdvFill);
+				gridStyle.fillPaint = false;
+				gridStyle.strokePaint = true;
+				gridStyle.stroke.color.kind = kGrayColor;
+				gridStyle.stroke.color.c.g.gray = 0.85 * kAIRealOne;  // Light gray
+				gridStyle.stroke.width = 0.25;
+				gridStyle.stroke.dash.length = 2;  // Number of dash entries
+				gridStyle.stroke.dash.array[0] = 2.0;  // Dash length
+				gridStyle.stroke.dash.array[1] = 2.0;  // Gap length
+				sAIPathStyle->SetPathStyle(gridLine, &gridStyle);
+			}
+		}
+		
+		// Create column chart with multiple data series
+		const int numCategories = 5;  // Number of X-axis categories (months)
+		const int numSeries = 3;      // Number of data series (e.g., different years)
+		
+		// Multiple data series - each row is a series
+		AIReal values[numSeries][numCategories] = {
+			{75.0, 45.0, 90.0, 60.0, 85.0},  // Series 1 (e.g., 2022)
+			{65.0, 55.0, 80.0, 70.0, 75.0},  // Series 2 (e.g., 2023)
+			{85.0, 50.0, 95.0, 65.0, 90.0}   // Series 3 (e.g., 2024)
+		};
+		
+		const char* categoryLabels[numCategories] = {"Jan", "Feb", "Mar", "Apr", "May"};
+		const char* seriesNames[numSeries] = {"2022", "2023", "2024"};
+		
+		// Define colors for each series
+		struct SeriesColor {
+			AIReal red, green, blue;
+		};
+		SeriesColor seriesColors[numSeries] = {
+			{15000, 35000, 55000},  // Blue for series 1
+			{45000, 25000, 15000},  // Orange for series 2
+			{25000, 45000, 25000}   // Green for series 3
+		};
+		
+		// Calculate column dimensions
+		AIReal categoryWidth = plotWidth / numCategories;
+		AIReal columnGroupWidth = categoryWidth * 0.8;  // 80% of category width for columns
+		AIReal columnGroupGap = categoryWidth * 0.2;    // 20% for gaps
+		AIReal individualColumnWidth = columnGroupWidth / numSeries;
+		
+		// Create vertical grid lines (X grid) - one per category
+		for (int i = 0; i < numCategories; i++) {
+			AIReal xPos = plotArea.left + (i + 0.5) * categoryWidth;  // Center of category
+			AIArtHandle gridLine;
+			result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, xGridGroup, &gridLine);
+			if (result == kNoErr) {
+				result = sAIPath->SetPathSegmentCount(gridLine, 2);
+				AIPathSegment gridSegs[2];
+				gridSegs[0].p.h = xPos;
+				gridSegs[0].p.v = plotArea.bottom;
+				gridSegs[0].in = gridSegs[0].out = gridSegs[0].p;
+				gridSegs[0].corner = true;
+				
+				gridSegs[1].p.h = xPos;
+				gridSegs[1].p.v = plotArea.top;
+				gridSegs[1].in = gridSegs[1].out = gridSegs[1].p;
+				gridSegs[1].corner = true;
+				
+				for (int j = 0; j < 2; j++) {
+					result = sAIPath->SetPathSegments(gridLine, j, 1, &gridSegs[j]);
+				}
+				result = sAIPath->SetPathClosed(gridLine, false);
+				
+				// Style the grid line
+				AIPathStyle gridStyle;
+				AIBoolean hasAdvFill = false;
+				sAIPathStyle->GetPathStyle(gridLine, &gridStyle, &hasAdvFill);
+				gridStyle.fillPaint = false;
+				gridStyle.strokePaint = true;
+				gridStyle.stroke.color.kind = kGrayColor;
+				gridStyle.stroke.color.c.g.gray = 0.85 * kAIRealOne;  // Light gray
+				gridStyle.stroke.width = 0.25;
+				gridStyle.stroke.dash.length = 2;  // Number of dash entries
+				gridStyle.stroke.dash.array[0] = 2.0;  // Dash length
+				gridStyle.stroke.dash.array[1] = 2.0;  // Gap length
+				sAIPathStyle->SetPathStyle(gridLine, &gridStyle);
+			}
+		}
+		
+		// Create columns organized by series
+		for (int seriesIdx = 0; seriesIdx < numSeries; seriesIdx++) {
+			// Create a group for this series within the columns group
+			AIArtHandle seriesGroup;
+			result = sAIArt->NewArt(kGroupArt, kPlaceInsideOnTop, columnsGroup, &seriesGroup);
 			aisdk::check_ai_error(result);
+			ai::UnicodeString seriesGroupName("Column Set ");
+			seriesGroupName.append(ai::UnicodeString(seriesNames[seriesIdx]));
+			result = sAIArt->SetArtName(seriesGroup, seriesGroupName);
 			
-			result = sAIPath->SetPathSegmentCount(column, 4);
-			aisdk::check_ai_error(result);
+			// Create columns for this series
+			for (int catIdx = 0; catIdx < numCategories; catIdx++) {
+				// Calculate column position
+				AIReal categoryLeft = plotArea.left + catIdx * categoryWidth;
+				AIReal columnGroupLeft = categoryLeft + columnGroupGap / 2;
+				AIReal columnLeft = columnGroupLeft + seriesIdx * individualColumnWidth;
+				AIReal columnRight = columnLeft + individualColumnWidth * 0.9;  // Small gap between columns
+				
+				// Calculate column height
+				AIReal columnHeight = (values[seriesIdx][catIdx] / 100.0) * plotHeight;
+				AIReal columnTop = plotArea.bottom + columnHeight;
+				
+				// Create column rectangle in the series group
+				AIArtHandle column;
+				result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, seriesGroup, &column);
+				aisdk::check_ai_error(result);
 			
-			segments[0].p.h = columnLeft; segments[0].p.v = plotArea.bottom;
-			segments[1].p.h = columnLeft; segments[1].p.v = columnTop;
-			segments[2].p.h = columnRight; segments[2].p.v = columnTop;
-			segments[3].p.h = columnRight; segments[3].p.v = plotArea.bottom;
-			
-			for (int j = 0; j < 4; j++) {
-				segments[j].in = segments[j].out = segments[j].p;
-				segments[j].corner = true;
-				result = sAIPath->SetPathSegments(column, j, 1, &segments[j]);
+				result = sAIPath->SetPathSegmentCount(column, 4);
+				aisdk::check_ai_error(result);
+				
+				segments[0].p.h = columnLeft; segments[0].p.v = plotArea.bottom;
+				segments[1].p.h = columnLeft; segments[1].p.v = columnTop;
+				segments[2].p.h = columnRight; segments[2].p.v = columnTop;
+				segments[3].p.h = columnRight; segments[3].p.v = plotArea.bottom;
+				
+				for (int j = 0; j < 4; j++) {
+					segments[j].in = segments[j].out = segments[j].p;
+					segments[j].corner = true;
+					result = sAIPath->SetPathSegments(column, j, 1, &segments[j]);
+					aisdk::check_ai_error(result);
+				}
+				
+				result = sAIPath->SetPathClosed(column, true);
+				aisdk::check_ai_error(result);
+				
+				// Column style - use series color
+				result = sAIPathStyle->GetPathStyle(column, &style, &hasAdvFill);
+				aisdk::check_ai_error(result);
+				
+				style.fillPaint = true;
+				style.fill.color.kind = kThreeColor;
+				style.fill.color.c.rgb.red = seriesColors[seriesIdx].red;
+				style.fill.color.c.rgb.green = seriesColors[seriesIdx].green;
+				style.fill.color.c.rgb.blue = seriesColors[seriesIdx].blue;
+				style.strokePaint = true;
+				style.stroke.color.kind = kGrayColor;
+				style.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+				style.stroke.width = 0.5;
+				
+				result = sAIPathStyle->SetPathStyle(column, &style);
 				aisdk::check_ai_error(result);
 			}
-			
-			result = sAIPath->SetPathClosed(column, true);
-			aisdk::check_ai_error(result);
-			
-			// Column style - blue gradient (darker at bottom)
-			result = sAIPathStyle->GetPathStyle(column, &style, &hasAdvFill);
-			aisdk::check_ai_error(result);
-			
-			style.fillPaint = true;
-			style.fill.color.kind = kThreeColor;
-			style.fill.color.c.rgb.red = 10000 * (i % 2);  // Alternate colors slightly
-			style.fill.color.c.rgb.green = 30000 + 5000 * i;
-			style.fill.color.c.rgb.blue = 55000 + 2000 * i;
-			style.strokePaint = true;
-			style.stroke.color.kind = kGrayColor;
-			style.stroke.color.c.g.gray = 0.3 * kAIRealOne;
-			style.stroke.width = 0.5;
-			
-			result = sAIPathStyle->SetPathStyle(column, &style);
-			aisdk::check_ai_error(result);
+		}
+		
+		// Create X-axis labels and ticks (one per category)
+		for (int i = 0; i < numCategories; i++) {
+			AIReal categoryCenter = plotArea.left + (i + 0.5) * categoryWidth;
 			
 			// X-axis label
 			AITextOrientation orient = kHorizontalTextOrientation;
 			AIRealPoint anchor;
-			anchor.h = columnLeft + columnWidth/2;
+			anchor.h = categoryCenter;
 			anchor.v = plotArea.bottom - labelGap - 10;
 			
 			AIArtHandle xLabel = nullptr;
-			result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &xLabel);
+			result = sAITextFrame->NewPointText(kPlaceInsideOnTop, xLabelsGroup, orient, anchor, &xLabel);
 			if (result == kNoErr && xLabel) {
 				TextRangeRef range = nullptr;
 				result = sAITextFrame->GetATETextRange(xLabel, &range);
@@ -1012,7 +1192,7 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 					ATE::ITextRange textRange(range);
 					
 					// Set the text content
-					textRange.InsertAfter(ai::UnicodeString(monthLabels[i]).as_ASUnicode().c_str());
+					textRange.InsertAfter(ai::UnicodeString(categoryLabels[i]).as_ASUnicode().c_str());
 					
 					// Set paragraph alignment to center
 					ATE::IParaFeatures paraFeatures;
@@ -1020,43 +1200,43 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 					textRange.SetLocalParaFeatures(paraFeatures);
 				}
 			}
-		
-		// Also add tick mark
-		AIArtHandle tick;
-		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &tick);
-		if (result == kNoErr) {
-			result = sAIPath->SetPathSegmentCount(tick, 2);
-			AIPathSegment tickSegs[2];
-			tickSegs[0].p.h = columnLeft + columnWidth/2;
-			tickSegs[0].p.v = plotArea.bottom;
-			tickSegs[0].in = tickSegs[0].out = tickSegs[0].p;
-			tickSegs[0].corner = true;
 			
-			tickSegs[1].p.h = columnLeft + columnWidth/2;
-			tickSegs[1].p.v = plotArea.bottom - 5;
-			tickSegs[1].in = tickSegs[1].out = tickSegs[1].p;
-			tickSegs[1].corner = true;
-			
-			for (int j = 0; j < 2; j++) {
-				result = sAIPath->SetPathSegments(tick, j, 1, &tickSegs[j]);
+			// Also add tick mark
+			AIArtHandle tick;
+			result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, xTicksGroup, &tick);
+			if (result == kNoErr) {
+				result = sAIPath->SetPathSegmentCount(tick, 2);
+				AIPathSegment tickSegs[2];
+				tickSegs[0].p.h = categoryCenter;
+				tickSegs[0].p.v = plotArea.bottom;
+				tickSegs[0].in = tickSegs[0].out = tickSegs[0].p;
+				tickSegs[0].corner = true;
+				
+				tickSegs[1].p.h = categoryCenter;
+				tickSegs[1].p.v = plotArea.bottom - 5;
+				tickSegs[1].in = tickSegs[1].out = tickSegs[1].p;
+				tickSegs[1].corner = true;
+				
+				for (int j = 0; j < 2; j++) {
+					result = sAIPath->SetPathSegments(tick, j, 1, &tickSegs[j]);
+				}
+				result = sAIPath->SetPathClosed(tick, false);
+				
+				AIPathStyle tickStyle;
+				AIBoolean hasAdvFill = false;
+				sAIPathStyle->GetPathStyle(tick, &tickStyle, &hasAdvFill);
+				tickStyle.fillPaint = false;
+				tickStyle.strokePaint = true;
+				tickStyle.stroke.color.kind = kGrayColor;
+				tickStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
+				tickStyle.stroke.width = 0.5;
+				sAIPathStyle->SetPathStyle(tick, &tickStyle);
 			}
-			result = sAIPath->SetPathClosed(tick, false);
-			
-			AIPathStyle tickStyle;
-			AIBoolean hasAdvFill = false;
-			sAIPathStyle->GetPathStyle(tick, &tickStyle, &hasAdvFill);
-			tickStyle.fillPaint = false;
-			tickStyle.strokePaint = true;
-			tickStyle.stroke.color.kind = kGrayColor;
-			tickStyle.stroke.color.c.g.gray = 0.3 * kAIRealOne;
-			tickStyle.stroke.width = 0.5;
-			sAIPathStyle->SetPathStyle(tick, &tickStyle);
-		}
 		}
 		
-		// Add Y-axis (vertical line) and tick marks
+		// Add Y-axis (vertical line)
 	AIArtHandle yAxis;
-	result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &yAxis);
+	result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, yAxisGroup, &yAxis);
 	if (result == kNoErr) {
 		result = sAIPath->SetPathSegmentCount(yAxis, 2);
 		AIPathSegment axisSegs[2];
@@ -1089,7 +1269,7 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 	
 	// Add X-axis (horizontal line)
 	AIArtHandle xAxis;
-	result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &xAxis);
+	result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, xAxisGroup, &xAxis);
 	if (result == kNoErr) {
 		result = sAIPath->SetPathSegmentCount(xAxis, 2);
 		AIPathSegment axisSegs[2];
@@ -1140,7 +1320,7 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		anchor.v = plotArea.bottom + (i * plotHeight / 4) - (fontSize * 0.35);
 		
 		AIArtHandle yLabel = nullptr;
-		result = sAITextFrame->NewPointText(kPlaceInsideOnTop, resultArt, orient, anchor, &yLabel);
+		result = sAITextFrame->NewPointText(kPlaceInsideOnTop, yLabelsGroup, orient, anchor, &yLabel);
 		if (result == kNoErr && yLabel) {
 			TextRangeRef range = nullptr;
 			result = sAITextFrame->GetATETextRange(yLabel, &range);
@@ -1163,7 +1343,7 @@ ASErr ChartItem::CreatePluginArt(const AIRealRect& bounds, ChartType type, AIPlu
 		
 		// Add tick mark
 		AIArtHandle tick;
-		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, resultArt, &tick);
+		result = sAIArt->NewArt(kPathArt, kPlaceInsideOnTop, yTicksGroup, &tick);
 		if (result == kNoErr) {
 			result = sAIPath->SetPathSegmentCount(tick, 2);
 			AIPathSegment tickSegs[2];
